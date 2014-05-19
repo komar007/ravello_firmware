@@ -22,10 +22,16 @@ void GFX_swap()
 }
 
 
-void GFX_putpixel(int x, int y, int color)
+void GFX_putpixel(uint8_t x, uint8_t y, uint8_t color)
 {
 	uint8_t * const buf = work_buf + y*STRIDE + x/2;
 	*buf |= color << (4 * (x&1));
+}
+
+uint8_t GFX_getpixel(uint8_t x, uint8_t y)
+{
+	const uint8_t * const pix = work_buf + y*STRIDE + x/2;
+	return (*pix >> (4*(x&1))) & 0x0f;
 }
 
 void GFX_fill(struct rect bbox, uint8_t color)

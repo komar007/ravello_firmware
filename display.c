@@ -2,7 +2,7 @@
 
 #include <avr/interrupt.h>
 
-static volatile struct viewport viewport;
+static struct viewport viewport;
 
 #define DATA	5
 #define SHIFT	2
@@ -29,7 +29,7 @@ void DISPLAY_init()
 	}
 }
 
-static const int slots[] = {16000, 8000, 4000, 2000, 1500, 1200, 1000};
+static const uint16_t slots[] = {10385, 5191, 3542, 3400, 1800, 1500, 600};
 ISR(TIMER1_COMPA_vect)
 {
 	static uint8_t row = 0;
@@ -49,17 +49,23 @@ ISR(TIMER1_COMPA_vect)
 		if (++row > 6)
 			row = 0;
 	}
+	/* optimization */
+	uint8_t top = 7 - phase;
+	uint8_t top2 = top << 4;
 	/* ... and fill the buffer with data for the next phase */
 	const uint8_t *ptr = &viewport.data[viewport.stride*row];
-	for (uint8_t i = 0; i < 12; ++i) {
-		if (7 - (*ptr & 0x0f) <= phase)
+	for (uint8_t i = 0; i < 12; ++i, ++ptr) {
+		const uint8_t val = *ptr;
+		/* optimized from: if (7 - (*ptr & 0x0f) <= phase) */
+		if ((val & 0x0f) >= top)
 			PORTC |= _BV(DATA);
 		else
 			PORTC &= ~_BV(DATA);
 		PORTC |= _BV(SHIFT);
 		PORTC &= ~_BV(SHIFT);
 
-		if (7 - ((*ptr++) >> 4) <= phase)
+		/* optimized from: if (7 - ((*ptr) >> 4) <= phase) */
+		if (val >= top2)
 			PORTC |= _BV(DATA);
 		else
 			PORTC &= ~_BV(DATA);
