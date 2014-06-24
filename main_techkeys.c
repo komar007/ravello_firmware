@@ -35,10 +35,12 @@ int main(void)
 	IO_config(1, INPUT);
 	IO_config(2, INPUT);
 	IO_config(3, INPUT);
+	IO_config(4, INPUT);
 	IO_set(0, true);
 	IO_set(1, true);
 	IO_set(2, true);
 	IO_set(3, true);
+	IO_set(4, true);
 
 	//TIMER_init();
 
@@ -54,11 +56,26 @@ int main(void)
 			p -= 2;
 		else
 			p = 7-p;
-		uint8_t br = 3;
+		uint8_t br = 5;
 
+		/*for (int i = 0; i < 8; ++i)
+			GFX_fill((struct rect){3*i, 0, 3, 7}, i);*/
 		GFX_fill((struct rect){0, 0, d, 7}, 1);
 		GFX_fill((struct rect){24-d, 0, d, 7}, 1);
 		GFX_put_text((struct rect){d, 0, 24 - 2*d, 7}, 24 - i - d, p, txt, br, 0);
+		/*for (int j = 0; j < 7; ++j) {
+			for (int i = 0; i < 24; ++i) {
+				if (GFX_getpixel(i, j) > 0)
+					continue;
+				int br = 0;
+				for (int l = max(0, j-1); l <= min(6, j+1); ++l)
+					for (int k = max(0, i-1); k <= min(23, i+1); ++k)
+						if (GFX_getpixel(k, l) == 5)
+							++br;
+				if (br > 0)
+					GFX_putpixel(i, j, 1);
+			}
+		}*/
 		GFX_swap();
 		_delay_ms(20);
 		if (i % 16 == 0 && d > 0)
@@ -68,24 +85,22 @@ int main(void)
 			i = 0;
 		++b;
 
-		bool k = false;
-		for (int i = 0; i < 4; ++i) {
+		int k = 0;
+		for (int i = 0; i < 5; ++i) {
 			if (!IO_get(i)) {
-				k = true;
+				k = i+1;
 			}
 		}
 		if (!k)
 			continue;
 
-		for (int i = 0; i < 3; ++i) {
-			HID_set_scancode_state(KA, true);
-			HID_commit_state();
-			_delay_ms(2);
-			_delay_ms(18);
-			HID_set_scancode_state(KA, false);
-			HID_commit_state();
-			_delay_ms(20);
-		}
+		HID_set_scancode_state(KA+k, true);
+		HID_commit_state();
+		_delay_ms(2);
+		_delay_ms(18);
+		HID_set_scancode_state(KA+k, false);
+		HID_commit_state();
+		_delay_ms(20);
 	}
 
 	while (true) {

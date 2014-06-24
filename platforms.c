@@ -88,5 +88,6 @@ struct pin_config PINS[NUM_IO] = {
 	{.portx = &PORTD, .pinx = &PIND, .ddrx = &DDRD, .mask = _BV(PD6)}, // sw 2
 	{.portx = &PORTD, .pinx = &PIND, .ddrx = &DDRD, .mask = _BV(PD4)}, // sw 3
 	{.portx = &PORTD, .pinx = &PIND, .ddrx = &DDRD, .mask = _BV(PD3)}, // sw 4
+	{.portx = &PORTD, .pinx = &PIND, .ddrx = &DDRD, .mask = _BV(PD2)}, // sw 5
 };
 #endif
