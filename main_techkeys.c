@@ -18,6 +18,7 @@
 #include "display.h"
 #include "gfx.h"
 #include "time.h"
+#include "buttons.h"
 
 
 volatile bool should_scan = false;
@@ -150,20 +151,8 @@ int main(void)
 	USB_init();
 	HID_commit_state();
 
-	for (int i = 0; i < 4; ++i) {
-		IO_set(i, true);
-		IO_config(i, OUTPUT);
-	}
-	IO_config(0, INPUT);  //
-	IO_config(1, INPUT);
-	IO_config(2, INPUT);
-	IO_config(3, INPUT);
-	IO_config(4, INPUT);
-	IO_set(0, true);
-	IO_set(1, true);
-	IO_set(2, true);
-	IO_set(3, true);
-	IO_set(4, true);
+	BUTTONS_init();
+	BUTTONS_set_debounce_delay(50);
 
 	/* initialize eeprom */
 	for (int i = 0; i < 4; ++i) {
@@ -228,7 +217,7 @@ int main(void)
 		//Poll Keys
 		int k = 0;
 		for (int i = 0; i < 5; ++i) {
-			if (!IO_get(i)) {
+			if (BUTTONS_get(i)) {
 				k = i+1;
 			}
 		}
@@ -308,7 +297,7 @@ int main(void)
 					//Poll Keys
 					int m = 0;
 					for (int i = 0; i < 5; ++i) {
-						if (!IO_get(i)) {
+						if (BUTTONS_get(i)) {
 							m = i+1;
 						}
 					}
@@ -371,4 +360,5 @@ void MAIN_timer_handler()
 void MAIN_handle_sof()
 {
 	TIME_update_1ms();
+	BUTTONS_task();
 }
