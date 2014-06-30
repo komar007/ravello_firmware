@@ -185,9 +185,9 @@ int main(void)
 	}
 	_delay_ms(150);
 	
-	float blink_timer = 0;
+	unsigned int blink_timer = 0;
 	while (true) {
-		blink_timer = blink_timer + .2;
+		++blink_timer;
 		//Display home text
 		if (prog_mode == 0) {
 			GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, "v1.8", bright, 0);
@@ -198,28 +198,26 @@ int main(void)
 			if (strlen(temp_string)<=3) //Displays first 3 entry letters prior to scrolling
 			{
 				GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, temp_string, bright, 0);
-				GFX_swap();
-				_delay_ms(5);
-				if (sin(blink_timer)>0)
+				if (blink_timer % 30 < 15)
 				{
 					GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, temp_string, bright, 0);
 					GFX_put_text((struct rect){strlen(temp_string)*6, 0, 24, 7}, 0, 0, temp_letter, bright, 0);
-					GFX_swap();
 					_delay_ms(14);
 				}
+				GFX_swap();
+				_delay_ms(5);
 			} else {
 				//Display text past 3 characters that is scrolled 
 				int position = (strlen(temp_string) - 3) * -6;
 				GFX_put_text((struct rect){0, 0, 24, 7}, position, 0, temp_string, bright, 0);
-				GFX_swap();
-				_delay_ms(5);
-				if (sin(blink_timer)>0)
+				if (blink_timer % 30 < 15)
 				{
 					GFX_put_text((struct rect){0, 0, 24, 7}, position, 0, temp_string, bright, 0);
 					GFX_put_text((struct rect){18, 0, 24, 7}, 0, 0, temp_letter, bright, 0);
-					GFX_swap();
 					_delay_ms(14);
 				}
+				GFX_swap();
+				_delay_ms(5);
 			}
 		}
 
