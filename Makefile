@@ -39,7 +39,7 @@ bin/:
 	$(MKDIR) bin
 
 bin/%.hex: bin/%.elf
-	avr-objcopy -O ihex $^ $@
+	avr-objcopy -R .eeprom -O ihex $^ $@
 
 define TARGET_TEMPLATE=
 .PHONY: $1

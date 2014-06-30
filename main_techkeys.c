@@ -3,6 +3,7 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 #include <stdbool.h>
 #include <string.h>
@@ -137,6 +138,10 @@ void frame(int row, int frame, int bright)
 /* whole screen rectangle, for basic text drawing */
 const struct rect screen_r = {0, 0, 24, 7};
 
+#define MAX_LEN 10
+
+uint8_t EEMEM ee_strings[4][MAX_LEN+1];
+
 int main(void)
 {
 	clock_prescale_set(clock_div_1);
@@ -160,15 +165,22 @@ int main(void)
 	IO_set(3, true);
 	IO_set(4, true);
 
+	/* initialize eeprom */
+	for (int i = 0; i < 4; ++i) {
+		const char c = eeprom_read_byte(&ee_strings[i][0]);
+		eeprom_busy_wait();
+		if (!('a' <= c && c <= 'z')) {
+			eeprom_write_byte(&ee_strings[i][0], 'a');
+			eeprom_write_byte(&ee_strings[i][1], 0);
+			eeprom_busy_wait();
+		}
+	}
+
 	//TIMER_init();
 
 	DISPLAY_init();
 	GFX_swap();
-	char btnUp = "";
-	char *btnLeft = "";
-	char *btnDown = "";
-	char *btnRight = "";
-	char temp_string[10] = "a";
+	char temp_string[MAX_LEN+1] = "a";
 	int temp_string_len = 1;
 	int prog_mode = 0;
 	int prog_mode_select = 0;
@@ -233,8 +245,10 @@ int main(void)
 				break;
 			case 2: //LEFT ARROW
 				//TODO SHORTEN TEMP_STRING BY 1
-				temp_string[temp_string_len - 1] = 0;
-				--temp_string_len;
+				if (temp_string_len > 1) {
+					temp_string[temp_string_len - 1] = 0;
+					--temp_string_len;
+				}
 				TIME_delay_ms(300);
 				break;
 			case 3: //DOWN ARROW
@@ -244,26 +258,18 @@ int main(void)
 				break;
 			case 4: //RIGHT ARROW
 				//ADD LETTER TO TEMP_STRING
-				temp_string[temp_string_len] = 'a';
-				++temp_string_len;
-				temp_string[temp_string_len] = 0;
+				if (temp_string_len < MAX_LEN) {
+					temp_string[temp_string_len] = 'a';
+					++temp_string_len;
+					temp_string[temp_string_len] = 0;
+				}
 				TIME_delay_ms(150);
 				break;
 			case 5: //PROG BUTTON
-				//TODO SAVE TEMP_STRING TO BUTTON
+				eeprom_write_block(temp_string, &ee_strings[prog_mode-1], MAX_LEN+1);
+				eeprom_busy_wait();
 				prog_mode = 0;
-				memset(temp_string, 0, temp_string_len);
-				if (prog_mode == 1)
-					btnUp = temp_string;
-				if (prog_mode == 2)
-					btnLeft = temp_string;
-				if (prog_mode == 3)
-					btnDown = temp_string;
-				if (prog_mode == 4)
-					btnRight = temp_string;
 				TIME_delay_ms(300);
-				int i = 0;
-				int d = 11;
 				break;
 			}
 		} else {
@@ -271,8 +277,6 @@ int main(void)
 				prog_mode_select = 1;
 				//Delay to avoid immediate escape from prog mode
 				TIME_delay_ms(300);
-				int i = 0;
-				int d = 11;
 				while (prog_mode_select == 1)
 				{
 					//Scroll Select Button Text
@@ -310,27 +314,17 @@ int main(void)
 					}
 					if (!m)
 						continue;
-					else if (m == 1) {
-						//UP ARROW
-						prog_mode = 1;
+					else if (m < 5) {
+						//UP, DOWN, LEFT, RIGHT ARROW
+						prog_mode = m;
 						prog_mode_select = 0;
+						/* initialize temp_strig */
+						eeprom_read_block(temp_string, &ee_strings[m-1], MAX_LEN+1);
+						eeprom_busy_wait();
+						temp_string_len = strlen(temp_string);
+
 						TIME_delay_ms(300);
-					} else if (m == 2) {
-						//LEFT ARROW
-						prog_mode = 2;
-						prog_mode_select = 0;
-						TIME_delay_ms(300);
-					} else if (m == 3) {
-						//DOWN ARROW
-						prog_mode = 3;
-						prog_mode_select = 0;
-						TIME_delay_ms(300);
-					} else if (m == 4) {
-						//RIGHT ARROW
-						prog_mode = 3;
-						prog_mode_select = 0;
-						TIME_delay_ms(300);
-					} else if (m == 5) {
+					} else {
 						//PROG BUTTON
 						prog_mode = 0;
 						prog_mode_select = 0;
@@ -338,7 +332,18 @@ int main(void)
 					}
 				}
 			} else {
-				// TODO: output string for key
+				eeprom_read_block(temp_string, &ee_strings[k-1], MAX_LEN+1);
+				temp_string_len = strlen(temp_string);
+				eeprom_busy_wait();
+				for (int i = 0; i < temp_string_len; ++i) {
+					HID_set_scancode_state(KA + temp_string[i] - 'a', true);
+					HID_commit_state();
+					TIME_delay_ms(10);
+					HID_set_scancode_state(KA + temp_string[i] - 'a', false);
+					HID_commit_state();
+					TIME_delay_ms(10);
+				}
+				TIME_delay_ms(300);
 			}
 		}
 	}
