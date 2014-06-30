@@ -1,5 +1,5 @@
 #include "timer.h"
-#include "aux.h"
+#include "auxiliary.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>

@@ -1,6 +1,6 @@
 #include "gfx.h"
 #include "font.h"
-#include "aux.h"
+#include "auxiliary.h"
 
 #include <string.h>
 #include <avr/pgmspace.h>

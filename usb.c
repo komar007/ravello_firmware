@@ -1,4 +1,4 @@
-#include "aux.h"
+#include "auxiliary.h"
 #include "usb.h"
 #include "usb_config.h"
 #include "descriptors.h"

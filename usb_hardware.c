@@ -3,7 +3,7 @@
 #include "usb_hardware.h"
 #include "usb_config.h"
 #include "usb.h"
-#include "aux.h"
+#include "auxiliary.h"
 
 void USB_OUT_read_buffer(void *ptr, uint8_t len)
 {
