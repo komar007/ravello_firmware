@@ -42,9 +42,8 @@ void GFX_fill(struct rect bbox, uint8_t color)
 }
 
 void GFX_put_text(struct rect bbox, int x, int y,
-		const char *t, uint8_t fg, uint8_t bg)
+		const char *t, int16_t len, uint8_t fg, uint8_t bg)
 {
-	int len = strlen(t);
 	int8_t col = 0;
 	int8_t firstbit = 0;
 	int8_t height = bbox.h;
@@ -56,6 +55,7 @@ void GFX_put_text(struct rect bbox, int x, int y,
 		width -= x;
 	} else {
 		t += (-x) / 6;
+		len -= (-x) / 6;
 		col = (-x) % 6;
 	}
 	if (y >= bbox.h || y <= -7) {
@@ -68,7 +68,7 @@ void GFX_put_text(struct rect bbox, int x, int y,
 		height += y;
 	}
 
-	for (int x = bbox.x; *t != '\0' && x < bbox.x + width; ++x) {
+	for (int x = bbox.x, i = 0; i < len && x < bbox.x + width; ++x) {
 		if (col < 5) {
 			uint8_t letter = pgm_read_byte(&font[5*(*t - ' ') + col]);
 			letter >>= firstbit;
@@ -79,7 +79,7 @@ void GFX_put_text(struct rect bbox, int x, int y,
 			for (int y = bbox.y; y < bbox.y + height; ++y)
 				GFX_putpixel(x, y, bg);
 			col = 0;
-			++t;
+			++t; ++i;
 		}
 	}
 }

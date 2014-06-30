@@ -168,8 +168,8 @@ int main(void)
 	char *btnLeft = "";
 	char *btnDown = "";
 	char *btnRight = "";
-	char *temp_string = "";
-	char *temp_letter = "a";
+	char temp_string[10] = "a";
+	int temp_string_len = 1;
 	int prog_mode = 0;
 	int prog_mode_select = 0;
 
@@ -192,21 +192,23 @@ int main(void)
 	while (true) {
 		//Display home text
 		if (prog_mode == 0) {
-			GFX_put_text(screen_r, 0, 0, "v1.8", bright, 0);
+			GFX_put_text(screen_r, 0, 0, "v1.8", 4, bright, 0);
 			GFX_swap();
 			TIME_delay_ms(5);
 		} else {
-			if (strlen(temp_string) <= 3) {
+			if (temp_string_len <= 4) {
 				// Display first 3 entry letters prior to scrolling
-				GFX_put_text(screen_r, 0, 0, temp_string, bright, 0);
 				if (TIME_get() % 300 < 220)
-					GFX_put_text(screen_r, strlen(temp_string)*6, 0, temp_letter, bright, 0);
+					GFX_put_text(screen_r, 0, 0, temp_string, temp_string_len, bright, 0);
+				else
+					GFX_put_text(screen_r, 0, 0, temp_string, temp_string_len-1, bright, 0);
 			} else {
 				// Display text past 3 characters that is scrolled
-				int position = (strlen(temp_string) - 3) * -6;
-				GFX_put_text((struct rect){0, 0, 24, 7}, position, 0, temp_string, bright, 0);
+				int position = (temp_string_len - 4) * -6;
 				if (TIME_get() % 300 < 220)
-					GFX_put_text(screen_r, 18, 0, temp_letter, bright, 0);
+					GFX_put_text(screen_r, position, 0, temp_string, temp_string_len, bright, 0);
+				else
+					GFX_put_text(screen_r, position, 0, temp_string, temp_string_len-1, bright, 0);
 			}
 			GFX_swap();
 		}
@@ -225,38 +227,32 @@ int main(void)
 			switch (k) {
 			case 1: //UP ARROW
 				//THERE HAS TO BE A BETTER WAY...
-				if (temp_letter == "c") {
-					temp_letter = "b";
-					TIME_delay_ms(150);
-				} else if (temp_letter == "b") {
-					temp_letter = "a";
-					TIME_delay_ms(150);
-				}
+				if (--temp_string[temp_string_len-1] < 'a')
+					temp_string[temp_string_len-1] = 'a';
+				TIME_delay_ms(150);
 				break;
 			case 2: //LEFT ARROW
 				//TODO SHORTEN TEMP_STRING BY 1
-				temp_string[strlen(temp_string) - 1] = 0;
+				temp_string[temp_string_len - 1] = 0;
+				--temp_string_len;
 				TIME_delay_ms(300);
 				break;
 			case 3: //DOWN ARROW
-				if (temp_letter == "a") {
-					temp_letter = "b";
-					TIME_delay_ms(150);
-				} else if (temp_letter == "b") {
-					temp_letter = "c";
-					TIME_delay_ms(150);
-				}
+				if (++temp_string[temp_string_len-1] > 'z')
+					temp_string[temp_string_len-1] = 'z';
+				TIME_delay_ms(150);
 				break;
 			case 4: //RIGHT ARROW
 				//ADD LETTER TO TEMP_STRING
-				temp_string = strncat(temp_string, temp_letter, 30);
-				temp_letter = "a";
+				temp_string[temp_string_len] = 'a';
+				++temp_string_len;
+				temp_string[temp_string_len] = 0;
 				TIME_delay_ms(150);
 				break;
 			case 5: //PROG BUTTON
 				//TODO SAVE TEMP_STRING TO BUTTON
 				prog_mode = 0;
-				memset(temp_string, 0, strlen(temp_string));
+				memset(temp_string, 0, temp_string_len);
 				if (prog_mode == 1)
 					btnUp = temp_string;
 				if (prog_mode == 2)
