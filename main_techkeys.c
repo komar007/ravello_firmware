@@ -134,6 +134,9 @@ void frame(int row, int frame, int bright)
 	}
 }
 
+/* whole screen rectangle, for basic text drawing */
+const struct rect screen_r = {0, 0, 24, 7};
+
 int main(void)
 {
 	clock_prescale_set(clock_div_1);
@@ -170,7 +173,7 @@ int main(void)
 	int prog_mode = 0;
 	int prog_mode_select = 0;
 
-	uint8_t bright = 4;
+	const uint8_t bright = 4;
 
 	TIME_delay_ms(200);
 	for (int i =0 ;i<=35 ;++i)
@@ -185,41 +188,27 @@ int main(void)
 		GFX_swap();
 	}
 	TIME_delay_ms(150);
-	
-	unsigned int blink_timer = 0;
+
 	while (true) {
-		++blink_timer;
 		//Display home text
 		if (prog_mode == 0) {
-			GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, "v1.8", bright, 0);
+			GFX_put_text(screen_r, 0, 0, "v1.8", bright, 0);
 			GFX_swap();
 			TIME_delay_ms(5);
 		} else {
-			//Commented out attempt at Blinking Cursor (Delay screws up key polling)
-			if (strlen(temp_string)<=3) //Displays first 3 entry letters prior to scrolling
-			{
-				GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, temp_string, bright, 0);
-				if (blink_timer % 30 < 15)
-				{
-					GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, temp_string, bright, 0);
-					GFX_put_text((struct rect){strlen(temp_string)*6, 0, 24, 7}, 0, 0, temp_letter, bright, 0);
-					TIME_delay_ms(14);
-				}
-				GFX_swap();
-				TIME_delay_ms(5);
+			if (strlen(temp_string) <= 3) {
+				// Display first 3 entry letters prior to scrolling
+				GFX_put_text(screen_r, 0, 0, temp_string, bright, 0);
+				if (TIME_get() % 300 < 220)
+					GFX_put_text(screen_r, strlen(temp_string)*6, 0, temp_letter, bright, 0);
 			} else {
-				//Display text past 3 characters that is scrolled 
+				// Display text past 3 characters that is scrolled
 				int position = (strlen(temp_string) - 3) * -6;
 				GFX_put_text((struct rect){0, 0, 24, 7}, position, 0, temp_string, bright, 0);
-				if (blink_timer % 30 < 15)
-				{
-					GFX_put_text((struct rect){0, 0, 24, 7}, position, 0, temp_string, bright, 0);
-					GFX_put_text((struct rect){18, 0, 24, 7}, 0, 0, temp_letter, bright, 0);
-					TIME_delay_ms(14);
-				}
-				GFX_swap();
-				TIME_delay_ms(5);
+				if (TIME_get() % 300 < 220)
+					GFX_put_text(screen_r, 18, 0, temp_letter, bright, 0);
 			}
+			GFX_swap();
 		}
 
 		//Poll Keys
@@ -231,9 +220,10 @@ int main(void)
 		}
 		if (!k)
 			continue;
-		else if (k == 1) {	
-			//UP ARROW
-			if (prog_mode > 0) {
+
+		if (prog_mode > 0) {
+			switch (k) {
+			case 1: //UP ARROW
 				//THERE HAS TO BE A BETTER WAY...
 				if (temp_letter == "c") {
 					temp_letter = "b";
@@ -242,47 +232,28 @@ int main(void)
 					temp_letter = "a";
 					TIME_delay_ms(150);
 				}
-			} else {
-				//TODO OUTPUT UP ARROW TEXT
-			}
-		} else if (k == 2) {
-			//LEFT ARROW
-			if (prog_mode > 0) {
+				break;
+			case 2: //LEFT ARROW
 				//TODO SHORTEN TEMP_STRING BY 1
-				int string_length = strlen(temp_string);
-				temp_string[string_length - 1] = 0;
+				temp_string[strlen(temp_string) - 1] = 0;
 				TIME_delay_ms(300);
-			} else {
-				//TODO OUTPUT LEFT ARROW TEXT
-			}
-		} else if (k == 3) {
-			//DOWN ARROW
-			if (prog_mode > 0) {
+				break;
+			case 3: //DOWN ARROW
 				if (temp_letter == "a") {
 					temp_letter = "b";
 					TIME_delay_ms(150);
-				} else if (temp_letter == "b")
-				{
+				} else if (temp_letter == "b") {
 					temp_letter = "c";
 					TIME_delay_ms(150);
 				}
-			} else {
-				//TODO OUTPUT DOWN ARROW TEXT
-			}
-		} else if (k == 4) {
-			//RIGHT ARROW
-			if (prog_mode > 0) {
+				break;
+			case 4: //RIGHT ARROW
 				//ADD LETTER TO TEMP_STRING
 				temp_string = strncat(temp_string, temp_letter, 30);
 				temp_letter = "a";
 				TIME_delay_ms(150);
-			} else {
-				//TODO OUTPUT RIGHT ARROW TEXT
-			}
-			TIME_delay_ms(20);
-		} else if (k == 5) {
-			//PROG BUTTON
-			if (prog_mode > 0) {
+				break;
+			case 5: //PROG BUTTON
 				//TODO SAVE TEMP_STRING TO BUTTON
 				prog_mode = 0;
 				memset(temp_string, 0, strlen(temp_string));
@@ -297,7 +268,10 @@ int main(void)
 				TIME_delay_ms(300);
 				int i = 0;
 				int d = 11;
-			} else {
+				break;
+			}
+		} else {
+			if (k == 5) {
 				prog_mode_select = 1;
 				//Delay to avoid immediate escape from prog mode
 				TIME_delay_ms(300);
@@ -330,7 +304,7 @@ int main(void)
 					GFX_putpixel(4, 6, bright);
 					GFX_putpixel(18, 6, bright);
 					GFX_swap();
-					
+
 					//Poll Keys
 					int m = 0;
 					for (int i = 0; i < 5; ++i) {
@@ -340,7 +314,7 @@ int main(void)
 					}
 					if (!m)
 						continue;
-					else if (m == 1) {	
+					else if (m == 1) {
 						//UP ARROW
 						prog_mode = 1;
 						prog_mode_select = 0;
@@ -367,9 +341,10 @@ int main(void)
 						TIME_delay_ms(300);
 					}
 				}
+			} else {
+				// TODO: output string for key
 			}
 		}
-			
 	}
 
 
