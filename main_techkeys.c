@@ -16,6 +16,7 @@
 #include "auxiliary.h"
 #include "display.h"
 #include "gfx.h"
+#include "time.h"
 
 
 volatile bool should_scan = false;
@@ -171,10 +172,10 @@ int main(void)
 
 	uint8_t bright = 4;
 
-	_delay_ms(200);
+	TIME_delay_ms(200);
 	for (int i =0 ;i<=35 ;++i)
 	{
-		_delay_ms(20);
+		TIME_delay_ms(20);
 		frame(0,i,bright);
 		frame(1,i+1,bright);
 		frame(2,i+2,bright);
@@ -183,7 +184,7 @@ int main(void)
 		frame(5,i+5,bright);
 		GFX_swap();
 	}
-	_delay_ms(150);
+	TIME_delay_ms(150);
 	
 	unsigned int blink_timer = 0;
 	while (true) {
@@ -192,7 +193,7 @@ int main(void)
 		if (prog_mode == 0) {
 			GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, "v1.8", bright, 0);
 			GFX_swap();
-			_delay_ms(5);
+			TIME_delay_ms(5);
 		} else {
 			//Commented out attempt at Blinking Cursor (Delay screws up key polling)
 			if (strlen(temp_string)<=3) //Displays first 3 entry letters prior to scrolling
@@ -202,10 +203,10 @@ int main(void)
 				{
 					GFX_put_text((struct rect){0, 0, 24, 7}, 0, 0, temp_string, bright, 0);
 					GFX_put_text((struct rect){strlen(temp_string)*6, 0, 24, 7}, 0, 0, temp_letter, bright, 0);
-					_delay_ms(14);
+					TIME_delay_ms(14);
 				}
 				GFX_swap();
-				_delay_ms(5);
+				TIME_delay_ms(5);
 			} else {
 				//Display text past 3 characters that is scrolled 
 				int position = (strlen(temp_string) - 3) * -6;
@@ -214,10 +215,10 @@ int main(void)
 				{
 					GFX_put_text((struct rect){0, 0, 24, 7}, position, 0, temp_string, bright, 0);
 					GFX_put_text((struct rect){18, 0, 24, 7}, 0, 0, temp_letter, bright, 0);
-					_delay_ms(14);
+					TIME_delay_ms(14);
 				}
 				GFX_swap();
-				_delay_ms(5);
+				TIME_delay_ms(5);
 			}
 		}
 
@@ -236,10 +237,10 @@ int main(void)
 				//THERE HAS TO BE A BETTER WAY...
 				if (temp_letter == "c") {
 					temp_letter = "b";
-					_delay_ms(150);
+					TIME_delay_ms(150);
 				} else if (temp_letter == "b") {
 					temp_letter = "a";
-					_delay_ms(150);
+					TIME_delay_ms(150);
 				}
 			} else {
 				//TODO OUTPUT UP ARROW TEXT
@@ -250,7 +251,7 @@ int main(void)
 				//TODO SHORTEN TEMP_STRING BY 1
 				int string_length = strlen(temp_string);
 				temp_string[string_length - 1] = 0;
-				_delay_ms(300);
+				TIME_delay_ms(300);
 			} else {
 				//TODO OUTPUT LEFT ARROW TEXT
 			}
@@ -259,11 +260,11 @@ int main(void)
 			if (prog_mode > 0) {
 				if (temp_letter == "a") {
 					temp_letter = "b";
-					_delay_ms(150);
+					TIME_delay_ms(150);
 				} else if (temp_letter == "b")
 				{
 					temp_letter = "c";
-					_delay_ms(150);
+					TIME_delay_ms(150);
 				}
 			} else {
 				//TODO OUTPUT DOWN ARROW TEXT
@@ -274,11 +275,11 @@ int main(void)
 				//ADD LETTER TO TEMP_STRING
 				temp_string = strncat(temp_string, temp_letter, 30);
 				temp_letter = "a";
-				_delay_ms(150);
+				TIME_delay_ms(150);
 			} else {
 				//TODO OUTPUT RIGHT ARROW TEXT
 			}
-			_delay_ms(20);
+			TIME_delay_ms(20);
 		} else if (k == 5) {
 			//PROG BUTTON
 			if (prog_mode > 0) {
@@ -293,13 +294,13 @@ int main(void)
 					btnDown = temp_string;
 				if (prog_mode == 4)
 					btnRight = temp_string;
-				_delay_ms(300);
+				TIME_delay_ms(300);
 				int i = 0;
 				int d = 11;
 			} else {
 				prog_mode_select = 1;
 				//Delay to avoid immediate escape from prog mode
-				_delay_ms(300);
+				TIME_delay_ms(300);
 				int i = 0;
 				int d = 11;
 				while (prog_mode_select == 1)
@@ -343,27 +344,27 @@ int main(void)
 						//UP ARROW
 						prog_mode = 1;
 						prog_mode_select = 0;
-						_delay_ms(300);
+						TIME_delay_ms(300);
 					} else if (m == 2) {
 						//LEFT ARROW
 						prog_mode = 2;
 						prog_mode_select = 0;
-						_delay_ms(300);
+						TIME_delay_ms(300);
 					} else if (m == 3) {
 						//DOWN ARROW
 						prog_mode = 3;
 						prog_mode_select = 0;
-						_delay_ms(300);
+						TIME_delay_ms(300);
 					} else if (m == 4) {
 						//RIGHT ARROW
 						prog_mode = 3;
 						prog_mode_select = 0;
-						_delay_ms(300);
+						TIME_delay_ms(300);
 					} else if (m == 5) {
 						//PROG BUTTON
 						prog_mode = 0;
 						prog_mode_select = 0;
-						_delay_ms(300);
+						TIME_delay_ms(300);
 					}
 				}
 			}
@@ -375,11 +376,11 @@ int main(void)
 			/*
 			HID_set_scancode_state(KD, true);
 			HID_commit_state();
-			_delay_ms(2);
-			_delay_ms(18);
+			TIME_delay_ms(2);
+			TIME_delay_ms(18);
 			HID_set_scancode_state(KD, false);
 			HID_commit_state();
-			_delay_ms(20);
+			TIME_delay_ms(20);
 			*/
 	while (true) {
 	}
@@ -393,4 +394,5 @@ void MAIN_timer_handler()
 
 void MAIN_handle_sof()
 {
+	TIME_update_1ms();
 }
