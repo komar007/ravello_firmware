@@ -18,6 +18,12 @@
 #include "time.h"
 #include "buttons.h"
 
+#define K_UP	1
+#define K_LEFT	2
+#define K_DOWN	3
+#define K_RIGHT	4
+#define K_PROG	5
+
 
 volatile bool should_scan = false;
 
@@ -166,10 +172,13 @@ int main(void)
 
 	DISPLAY_init();
 	GFX_swap();
-	char temp_string[MAX_LEN+1] = "a";
-	int temp_string_len = 1;
+	char macro[MAX_LEN+1] = "a";
+	int macro_len = 1;
+
+	/* program edit mode */
 	int prog_mode = 0;
-	int prog_mode_select = 0;
+	/* after holding "PROGRAM", waiting for key choice to reprogram */
+	bool prog_mode_select = false;
 
 	const uint8_t bright = 4;
 
@@ -189,151 +198,139 @@ int main(void)
 
 	while (true) {
 		//Display home text
-		if (prog_mode == 0) {
+		if (prog_mode_select) {
+			GFX_fill((struct rect){4, 0, 2, 1}, bright);
+			GFX_fill((struct rect){18, 0, 2, 1}, bright);
+			GFX_putpixel(3, 1, bright);
+			GFX_putpixel(6, 1, bright);
+			GFX_fill((struct rect){11, 1, 3, 1}, bright);
+			GFX_putpixel(17, 1, bright);
+			GFX_putpixel(20, 1, bright);
+			GFX_putpixel(6, 2, bright);
+			GFX_putpixel(11, 2, bright);
+			GFX_putpixel(13, 2, bright);
+			GFX_putpixel(20, 2, bright);
+			GFX_fill((struct rect){4, 3, 2, 1}, bright);
+			GFX_fill((struct rect){9, 3, 7, 1}, bright);
+			GFX_fill((struct rect){18, 3, 2, 1}, bright);
+			GFX_putpixel(4, 4, bright);
+			GFX_putpixel(9, 4, bright);
+			GFX_putpixel(11, 4, bright);
+			GFX_putpixel(13, 4, bright);
+			GFX_putpixel(15, 4, bright);
+			GFX_putpixel(18, 4, bright);
+			GFX_fill((struct rect){9, 5, 7, 1}, bright);
+			GFX_putpixel(4, 6, bright);
+			GFX_putpixel(18, 6, bright);
+			GFX_swap();
+		} else if (prog_mode == 0) {
 			GFX_put_text(screen_r, 0, 0, "v1.8", 4, bright, 0);
 			GFX_swap();
 			TIME_delay_ms(5);
 		} else {
-			if (temp_string_len <= 4) {
+			if (macro_len <= 4) {
 				// Display first 3 entry letters prior to scrolling
 				if (TIME_get() % 300 < 220)
-					GFX_put_text(screen_r, 0, 0, temp_string, temp_string_len, bright, 0);
+					GFX_put_text(screen_r, 0, 0, macro, macro_len, bright, 0);
 				else
-					GFX_put_text(screen_r, 0, 0, temp_string, temp_string_len-1, bright, 0);
+					GFX_put_text(screen_r, 0, 0, macro, macro_len-1, bright, 0);
 			} else {
 				// Display text past 3 characters that is scrolled
-				int position = (temp_string_len - 4) * -6;
+				int position = (macro_len - 4) * -6;
 				if (TIME_get() % 300 < 220)
-					GFX_put_text(screen_r, position, 0, temp_string, temp_string_len, bright, 0);
+					GFX_put_text(screen_r, position, 0, macro, macro_len, bright, 0);
 				else
-					GFX_put_text(screen_r, position, 0, temp_string, temp_string_len-1, bright, 0);
+					GFX_put_text(screen_r, position, 0, macro, macro_len-1, bright, 0);
 			}
 			GFX_swap();
 		}
 
 		//Poll Keys
-		int k = 0;
-		int kh = 0;
+		int clicked = 0;
+		int held = 0;
 		for (int i = 0; i < 5; ++i) {
 			if (BUTTONS_has_been_clicked(i))
-				k = i+1;
+				clicked = i+1;
 			if (BUTTONS_has_been_held(i))
-				kh = i+1;
+				held = i+1;
 		}
-		if (!k && !kh)
+		if (!clicked && !held)
 			continue;
 
 		if (prog_mode > 0) {
-			switch (k) {
-			case 1: //UP ARROW
+			/* check key clicks */
+			switch (clicked) {
+			case K_UP:
 				//THERE HAS TO BE A BETTER WAY...
-				if (--temp_string[temp_string_len-1] < 'a')
-					temp_string[temp_string_len-1] = 'a';
+				if (--macro[macro_len-1] < 'a')
+					macro[macro_len-1] = 'a';
 				TIME_delay_ms(150);
 				break;
-			case 2: //LEFT ARROW
+			case K_LEFT:
 				//TODO SHORTEN TEMP_STRING BY 1
-				if (temp_string_len > 1) {
-					temp_string[temp_string_len - 1] = 0;
-					--temp_string_len;
+				if (macro_len > 1) {
+					macro[macro_len - 1] = 0;
+					--macro_len;
 				}
 				TIME_delay_ms(300);
 				break;
-			case 3: //DOWN ARROW
-				if (++temp_string[temp_string_len-1] > 'z')
-					temp_string[temp_string_len-1] = 'z';
+			case K_DOWN:
+				if (++macro[macro_len-1] > 'z')
+					macro[macro_len-1] = 'z';
 				TIME_delay_ms(150);
 				break;
-			case 4: //RIGHT ARROW
+			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
-				if (temp_string_len < MAX_LEN) {
-					temp_string[temp_string_len] = 'a';
-					++temp_string_len;
-					temp_string[temp_string_len] = 0;
+				if (macro_len < MAX_LEN) {
+					macro[macro_len] = 'a';
+					++macro_len;
+					macro[macro_len] = 0;
 				}
 				TIME_delay_ms(150);
 				break;
 			default:
 				break;
 			}
-			switch (kh) {
-			case 5: //PROG BUTTON
-				eeprom_write_block(temp_string, &ee_strings[prog_mode-1], MAX_LEN+1);
+			/* check key holds */
+			if (held == K_PROG) {
+				eeprom_write_block(macro, &ee_strings[prog_mode-1], MAX_LEN+1);
 				eeprom_busy_wait();
 				prog_mode = 0;
 				TIME_delay_ms(300);
-				break;
 			}
-		} else {
-			if (kh == 5) { /* held program button */
-				prog_mode_select = 1;
+		} else if (prog_mode_select) {
+			if (clicked < 5) {
+				//UP, DOWN, LEFT, RIGHT ARROW
+				prog_mode = clicked;
+				prog_mode_select = false;
+				/* initialize temp_strig */
+				eeprom_read_block(macro, &ee_strings[clicked-1], MAX_LEN+1);
+				eeprom_busy_wait();
+				macro_len = strlen(macro);
+
+				TIME_delay_ms(300);
+			} else {
+				//PROG BUTTON
+				prog_mode = 0;
+				prog_mode_select = false;
+				TIME_delay_ms(300);
+			}
+		} else { /* regular mode */
+			if (held == K_PROG) {
+				prog_mode_select = true;
 				//Delay to avoid immediate escape from prog mode
 				TIME_delay_ms(300);
-				while (prog_mode_select == 1)
-				{
-					//Scroll Select Button Text
-					GFX_fill((struct rect){4, 0, 2, 1}, bright);
-					GFX_fill((struct rect){18, 0, 2, 1}, bright);
-					GFX_putpixel(3, 1, bright);
-					GFX_putpixel(6, 1, bright);
-					GFX_fill((struct rect){11, 1, 3, 1}, bright);
-					GFX_putpixel(17, 1, bright);
-					GFX_putpixel(20, 1, bright);
-					GFX_putpixel(6, 2, bright);
-					GFX_putpixel(11, 2, bright);
-					GFX_putpixel(13, 2, bright);
-					GFX_putpixel(20, 2, bright);
-					GFX_fill((struct rect){4, 3, 2, 1}, bright);
-					GFX_fill((struct rect){9, 3, 7, 1}, bright);
-					GFX_fill((struct rect){18, 3, 2, 1}, bright);
-					GFX_putpixel(4, 4, bright);
-					GFX_putpixel(9, 4, bright);
-					GFX_putpixel(11, 4, bright);
-					GFX_putpixel(13, 4, bright);
-					GFX_putpixel(15, 4, bright);
-					GFX_putpixel(18, 4, bright);
-					GFX_fill((struct rect){9, 5, 7, 1}, bright);
-					GFX_putpixel(4, 6, bright);
-					GFX_putpixel(18, 6, bright);
-					GFX_swap();
-
-					//Poll Keys
-					int m = 0;
-					for (int i = 0; i < 5; ++i) {
-						if (BUTTONS_has_been_clicked(i)) {
-							m = i+1;
-						}
-					}
-					if (!m)
-						continue;
-					else if (m < 5) {
-						//UP, DOWN, LEFT, RIGHT ARROW
-						prog_mode = m;
-						prog_mode_select = 0;
-						/* initialize temp_strig */
-						eeprom_read_block(temp_string, &ee_strings[m-1], MAX_LEN+1);
-						eeprom_busy_wait();
-						temp_string_len = strlen(temp_string);
-
-						TIME_delay_ms(300);
-					} else {
-						//PROG BUTTON
-						prog_mode = 0;
-						prog_mode_select = 0;
-						TIME_delay_ms(300);
-					}
-				}
-			} else if (k == 5) { /* clicked program button */
+			} else if (clicked == K_PROG) {
 				//TODO
-			} else if (k > 0) {
-				eeprom_read_block(temp_string, &ee_strings[k-1], MAX_LEN+1);
-				temp_string_len = strlen(temp_string);
+			} else if (clicked > 0) {
+				eeprom_read_block(macro, &ee_strings[clicked-1], MAX_LEN+1);
+				macro_len = strlen(macro);
 				eeprom_busy_wait();
-				for (int i = 0; i < temp_string_len; ++i) {
-					HID_set_scancode_state(KA + temp_string[i] - 'a', true);
+				for (int i = 0; i < macro_len; ++i) {
+					HID_set_scancode_state(KA + macro[i] - 'a', true);
 					HID_commit_state();
 					TIME_delay_ms(10);
-					HID_set_scancode_state(KA + temp_string[i] - 'a', false);
+					HID_set_scancode_state(KA + macro[i] - 'a', false);
 					HID_commit_state();
 					TIME_delay_ms(10);
 				}
@@ -341,20 +338,6 @@ int main(void)
 			}
 		}
 	}
-
-
-			/*
-			HID_set_scancode_state(KD, true);
-			HID_commit_state();
-			TIME_delay_ms(2);
-			TIME_delay_ms(18);
-			HID_set_scancode_state(KD, false);
-			HID_commit_state();
-			TIME_delay_ms(20);
-			*/
-	while (true) {
-	}
-
 }
 
 
