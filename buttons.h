@@ -12,4 +12,7 @@ void BUTTONS_task();
 bool BUTTONS_get(uint8_t num);
 /* checks if a button has been presed since the last time, returns true only
  * once per actual press event */
-bool BUTTONS_has_clicked(uint8_t num);
+bool BUTTONS_has_been_clicked(uint8_t num);
+/* checks if a button has been held for at least 1 second since the last time,
+ * returns true only once per actual hold event */
+bool BUTTONS_has_been_held(uint8_t num);

@@ -213,12 +213,14 @@ int main(void)
 
 		//Poll Keys
 		int k = 0;
+		int kh = 0;
 		for (int i = 0; i < 5; ++i) {
-			if (BUTTONS_has_clicked(i)) {
+			if (BUTTONS_has_been_clicked(i))
 				k = i+1;
-			}
+			if (BUTTONS_has_been_held(i))
+				kh = i+1;
 		}
-		if (!k)
+		if (!k && !kh)
 			continue;
 
 		if (prog_mode > 0) {
@@ -251,6 +253,10 @@ int main(void)
 				}
 				TIME_delay_ms(150);
 				break;
+			default:
+				break;
+			}
+			switch (kh) {
 			case 5: //PROG BUTTON
 				eeprom_write_block(temp_string, &ee_strings[prog_mode-1], MAX_LEN+1);
 				eeprom_busy_wait();
@@ -259,7 +265,7 @@ int main(void)
 				break;
 			}
 		} else {
-			if (k == 5) {
+			if (kh == 5) { /* held program button */
 				prog_mode_select = 1;
 				//Delay to avoid immediate escape from prog mode
 				TIME_delay_ms(300);
@@ -294,7 +300,7 @@ int main(void)
 					//Poll Keys
 					int m = 0;
 					for (int i = 0; i < 5; ++i) {
-						if (BUTTONS_has_clicked(i)) {
+						if (BUTTONS_has_been_clicked(i)) {
 							m = i+1;
 						}
 					}
@@ -317,7 +323,9 @@ int main(void)
 						TIME_delay_ms(300);
 					}
 				}
-			} else {
+			} else if (k == 5) { /* clicked program button */
+				//TODO
+			} else if (k > 0) {
 				eeprom_read_block(temp_string, &ee_strings[k-1], MAX_LEN+1);
 				temp_string_len = strlen(temp_string);
 				eeprom_busy_wait();

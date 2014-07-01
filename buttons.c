@@ -5,6 +5,7 @@
 
 static volatile uint8_t state = 0x00;
 static volatile uint8_t clicked = 0x00;
+static volatile uint8_t held = 0x00;
 
 void BUTTONS_init()
 {
@@ -30,6 +31,9 @@ bool IO_get(uint8_t num)
 	}
 }
 
+static volatile uint64_t last_pressed;
+static volatile int8_t last_pressed_no = -1;
+
 void BUTTONS_task()
 {
 	static uint64_t last_time = 0;
@@ -39,8 +43,16 @@ void BUTTONS_task()
 	last_time = time;
 	for (int i = 0; i < 5; ++i) {
 		const bool newstate = !IO_get(i);
-		if (!(state & (1 << i)) && newstate)
+		if (!(state & (1 << i)) && newstate) {
 			clicked |= 1 << i;
+			last_pressed = time;
+			last_pressed_no = i;
+		} else if ((state & (1 << i)) && !newstate) {
+			last_pressed_no = -1;
+		} else if (time > last_pressed + 1000 && last_pressed_no == i) {
+			last_pressed_no = -1;
+			held |= 1 << i;
+		}
 		if (newstate)
 			state |= 1 << i;
 		else
@@ -53,9 +65,16 @@ bool BUTTONS_get(uint8_t num)
 	return state & (1 << num);
 }
 
-bool BUTTONS_has_clicked(uint8_t num)
+bool BUTTONS_has_been_clicked(uint8_t num)
 {
 	const bool c = clicked & (1 << num);
 	clicked &= ~(1 << num);
 	return c;
+}
+
+bool BUTTONS_has_been_held(uint8_t num)
+{
+	const bool h = held & (1 << num);
+	held &= ~(1 << num);
+	return h;
 }
