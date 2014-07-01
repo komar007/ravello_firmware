@@ -1,4 +1,3 @@
-#include "platforms.h"
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
@@ -11,7 +10,6 @@
 
 #include "main.h"
 #include "usb_keyboard.h"
-#include "io.h"
 #include "hid.h"
 #include "timer.h"
 #include "auxiliary.h"

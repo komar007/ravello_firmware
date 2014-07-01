@@ -1,6 +1,5 @@
 #include "buttons.h"
 #include "time.h"
-#include "io.h"
 
 #include <avr/io.h>
 
@@ -9,9 +8,25 @@ static volatile uint8_t clicked = 0x00;
 
 void BUTTONS_init()
 {
-	for (int i = 0; i < 5; ++i) {
-		IO_config(i, INPUT);
-		IO_set(i, true);
+	DDRD &= ~(_BV(PB2) | _BV(PB3) | _BV(PB4) | _BV(PB5) | _BV(PB6));
+	PORTD |= _BV(PB2) | _BV(PB3) | _BV(PB4) | _BV(PB5) | _BV(PB6);
+}
+
+bool IO_get(uint8_t num)
+{
+	switch (num) {
+	case 0:
+		return PIND & _BV(PD5);
+	case 1:
+		return PIND & _BV(PD6);
+	case 2:
+		return PIND & _BV(PD4);
+	case 3:
+		return PIND & _BV(PD3);
+	case 4:
+		return PIND & _BV(PD2);
+	default:
+		return false;
 	}
 }
 

@@ -2,7 +2,6 @@
 #include "usb.h"
 #include "usb_config.h"
 #include "descriptors.h"
-#include "platforms.h"
 
 #include <stdint.h>
 #include <avr/interrupt.h>
