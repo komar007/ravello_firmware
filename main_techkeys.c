@@ -152,7 +152,6 @@ int main(void)
 	HID_commit_state();
 
 	BUTTONS_init();
-	BUTTONS_set_debounce_delay(50);
 
 	/* initialize eeprom */
 	for (int i = 0; i < 4; ++i) {
@@ -217,7 +216,7 @@ int main(void)
 		//Poll Keys
 		int k = 0;
 		for (int i = 0; i < 5; ++i) {
-			if (BUTTONS_get(i)) {
+			if (BUTTONS_has_clicked(i)) {
 				k = i+1;
 			}
 		}
@@ -297,7 +296,7 @@ int main(void)
 					//Poll Keys
 					int m = 0;
 					for (int i = 0; i < 5; ++i) {
-						if (BUTTONS_get(i)) {
+						if (BUTTONS_has_clicked(i)) {
 							m = i+1;
 						}
 					}
