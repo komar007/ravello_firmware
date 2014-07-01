@@ -13,7 +13,7 @@ void DISPLAY_init()
 	DDRC	= _BV(DATA) | _BV(SHIFT) | _BV(STORE);
 	PORTC	= 0x00;
 	DDRB    = 0xfe;
-	PORTB   = 0x02;
+	PORTB   = 0x00;
 
 	TCCR1A = 0x00;
 	TCCR1B = 0x01; /* no prescaling */

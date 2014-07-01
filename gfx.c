@@ -10,6 +10,12 @@
 uint8_t buffers[2][7*STRIDE];
 uint8_t *work_buf = buffers[0];
 
+void GFX_init()
+{
+	DISPLAY_init();
+	DISPLAY_set_viewport(work_buf, STRIDE);
+}
+
 void GFX_swap()
 {
 	static uint8_t b = 0;

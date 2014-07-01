@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+void GFX_init();
 void GFX_swap();
 void GFX_putpixel(uint8_t x, uint8_t y, uint8_t color);
 uint8_t GFX_getpixel(uint8_t x, uint8_t y);

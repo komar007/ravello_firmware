@@ -13,7 +13,6 @@
 #include "hid.h"
 #include "timer.h"
 #include "auxiliary.h"
-#include "display.h"
 #include "gfx.h"
 #include "time.h"
 #include "buttons.h"
@@ -170,8 +169,7 @@ int main(void)
 
 	//TIMER_init();
 
-	DISPLAY_init();
-	GFX_swap();
+	GFX_init();
 	char macro[MAX_LEN+1] = "a";
 	int macro_len = 1;
 
