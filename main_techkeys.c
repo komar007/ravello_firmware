@@ -222,9 +222,48 @@ int main(void)
 			GFX_putpixel(18, 6, bright);
 			GFX_swap();
 		} else if (prog_mode == 0) {
-			GFX_put_text(screen_r, 0, 0, "v1.8", 4, bright, 0);
-			GFX_swap();
-			TIME_delay_ms(5);
+			if (TIME_get() % 7000 < 3500) {
+				GFX_fill((struct rect){0, 0, 6, 2}, 2);
+				GFX_fill((struct rect){2, 2, 2, 5}, 2);
+				GFX_fill((struct rect){7, 0, 5, 2}, 2);
+				GFX_fill((struct rect){7, 2, 2, 5}, 2);
+				GFX_fill((struct rect){9, 3, 2, 1}, 2);
+				GFX_fill((struct rect){9, 5, 3, 2}, 2);
+				GFX_fill((struct rect){13, 0, 4, 2}, 2);
+				GFX_fill((struct rect){13, 2, 2, 3}, 2);
+				GFX_fill((struct rect){13, 5, 4, 2}, 2);
+				GFX_fill((struct rect){18, 0, 2, 7}, 2);
+				GFX_fill((struct rect){20, 2, 2, 2}, 2);
+				GFX_fill((struct rect){22, 0, 2, 7}, 2);
+				GFX_swap();
+				TIME_delay_ms(30);
+			} else {
+				GFX_fill((struct rect){0, 0, 2, 7}, 2);
+				GFX_fill((struct rect){4, 0, 2, 1}, 2);
+				GFX_fill((struct rect){3, 1, 3, 1}, 2);
+				GFX_fill((struct rect){2, 2, 3, 1}, 2);
+				GFX_fill((struct rect){2, 3, 2, 1}, 2);
+				GFX_fill((struct rect){3, 4, 2, 1}, 2);
+				GFX_fill((struct rect){4, 5, 2, 2}, 2);
+				GFX_fill((struct rect){7, 0, 4, 2}, 2);
+				GFX_fill((struct rect){7, 2, 2, 3}, 2);
+				GFX_putpixel(9, 3, 2);
+				GFX_fill((struct rect){7, 5, 4, 2}, 2);
+				GFX_fill((struct rect){12, 0, 2, 2}, 2);
+				GFX_fill((struct rect){16, 0, 2, 2}, 2);
+				GFX_fill((struct rect){14, 1, 2, 1}, 2);
+				GFX_fill((struct rect){13, 2, 4, 1}, 2);
+				GFX_fill((struct rect){14, 3, 2, 4}, 2);
+				GFX_fill((struct rect){20, 0, 3, 1}, 2);
+				GFX_fill((struct rect){19, 1, 5, 1}, 2);
+				GFX_fill((struct rect){19, 2, 2, 1}, 2);
+				GFX_fill((struct rect){20, 3, 3, 1}, 2);
+				GFX_fill((struct rect){22, 4, 2, 1}, 2);
+				GFX_fill((struct rect){19, 5, 5, 1}, 2);
+				GFX_fill((struct rect){20, 6, 3, 1}, 2);
+				GFX_swap();
+				TIME_delay_ms(30);
+			}
 		} else {
 			if (macro_len <= 4) {
 				// Display first 3 entry letters prior to scrolling
