@@ -5,6 +5,7 @@
 
 static volatile uint8_t state = 0x00;
 static volatile uint8_t clicked = 0x00;
+static volatile uint8_t released = 0x00;
 static volatile uint8_t held = 0x00;
 
 void BUTTONS_init()
@@ -49,6 +50,7 @@ void BUTTONS_task()
 			last_pressed_no = i;
 		} else if ((state & (1 << i)) && !newstate) {
 			last_pressed_no = -1;
+			released |= 1 << i;
 		} else if (time > last_pressed + 1000 && last_pressed_no == i) {
 			last_pressed_no = -1;
 			held |= 1 << i;
@@ -70,6 +72,13 @@ bool BUTTONS_has_been_clicked(uint8_t num)
 	const bool c = clicked & (1 << num);
 	clicked &= ~(1 << num);
 	return c;
+}
+
+bool BUTTONS_has_been_released(uint8_t num)
+{
+	const bool r = released & (1 << num);
+	released &= ~(1 << num);
+	return r;
 }
 
 bool BUTTONS_has_been_held(uint8_t num)

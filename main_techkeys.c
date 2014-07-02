@@ -23,128 +23,126 @@
 #define K_RIGHT	4
 #define K_PROG	5
 
-
-volatile bool should_scan = false;
-
 void frame(int row, int frame, int bright)
 {
 	if (frame == 0)
 	{
-		GFX_fill((struct rect){12, row, 6, 1}, bright);
+		GFX_fill((rect_t){12, row, 6, 1}, bright);
 		GFX_putpixel(19, row, bright);
 	} else if (frame ==1) {
-		GFX_fill((struct rect){11, row, 6, 1}, bright);
-		GFX_fill((struct rect){18, row, 2, 1}, bright);
+		GFX_fill((rect_t){11, row, 6, 1}, bright);
+		GFX_fill((rect_t){18, row, 2, 1}, bright);
 	} else if (frame == 2) {
-		GFX_fill((struct rect){10, row, 6, 1}, bright);
-		GFX_fill((struct rect){17, row, 3, 1}, bright);
+		GFX_fill((rect_t){10, row, 6, 1}, bright);
+		GFX_fill((rect_t){17, row, 3, 1}, bright);
 	} else if (frame == 3) {
-		GFX_fill((struct rect){9, row, 6, 1}, bright);
-		GFX_fill((struct rect){16, row, 2, 1}, bright);
+		GFX_fill((rect_t){9, row, 6, 1}, bright);
+		GFX_fill((rect_t){16, row, 2, 1}, bright);
 		GFX_putpixel(19, row, bright);
 	} else if (frame == 4) {
-		GFX_fill((struct rect){8, row, 6, 1}, bright);
-		GFX_fill((struct rect){15, row, 2, 1}, bright);
+		GFX_fill((rect_t){8, row, 6, 1}, bright);
+		GFX_fill((rect_t){15, row, 2, 1}, bright);
 		GFX_putpixel(19, row, bright);
 	} else if (frame == 5) {
-		GFX_fill((struct rect){7, row, 6, 1}, bright);
-		GFX_fill((struct rect){14, row, 2, 1}, bright);
-		GFX_fill((struct rect){18, row, 2, 1}, bright);
+		GFX_fill((rect_t){7, row, 6, 1}, bright);
+		GFX_fill((rect_t){14, row, 2, 1}, bright);
+		GFX_fill((rect_t){18, row, 2, 1}, bright);
 	} else if (frame == 6) {
 		GFX_putpixel(14, row, bright);
-		GFX_fill((struct rect){17, row, 2, 1}, bright);
+		GFX_fill((rect_t){17, row, 2, 1}, bright);
 	} else if (frame == 7) {
-		GFX_fill((struct rect){7, row, 6, 1}, bright);
+		GFX_fill((rect_t){7, row, 6, 1}, bright);
 		GFX_putpixel(14, row, bright);
-		GFX_fill((struct rect){16, row, 2, 1}, bright);
+		GFX_fill((rect_t){16, row, 2, 1}, bright);
 	} else if (frame == 8) {
-		GFX_fill((struct rect){7, row, 6, 1}, bright);
-		GFX_fill((struct rect){14, row, 3, 1}, bright);
+		GFX_fill((rect_t){7, row, 6, 1}, bright);
+		GFX_fill((rect_t){14, row, 3, 1}, bright);
 	} else if (frame == 9) {
-		GFX_fill((struct rect){7, row, 6, 1}, bright);
-		GFX_fill((struct rect){14, row, 2, 1}, bright);
+		GFX_fill((rect_t){7, row, 6, 1}, bright);
+		GFX_fill((rect_t){14, row, 2, 1}, bright);
 	} else if (frame == 10) {
-		GFX_fill((struct rect){7, row, 6, 1}, bright);
+		GFX_fill((rect_t){7, row, 6, 1}, bright);
 		GFX_putpixel(14, row, bright);
 	} else if (frame == 11) {
 		GFX_putpixel(16, row, bright);
 	} else if (frame == 12) {
 		GFX_putpixel(8, row, bright);
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
-		GFX_fill((struct rect){14, row, 4, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){14, row, 4, 1}, bright);
 	} else if (frame == 13) {
-		GFX_fill((struct rect){7, row, 2, 1}, bright);
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
-		GFX_fill((struct rect){14, row, 5, 1}, bright);
+		GFX_fill((rect_t){7, row, 2, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){14, row, 5, 1}, bright);
 	} else if (frame == 14 || frame == 15) {
-		GFX_fill((struct rect){6, row, 3, 1}, bright);
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
-		GFX_fill((struct rect){14, row, 6, 1}, bright);
+		GFX_fill((rect_t){6, row, 3, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){14, row, 6, 1}, bright);
 	} else if (frame == 16) {
-		GFX_fill((struct rect){5, row, 5, 1}, bright);
-		GFX_fill((struct rect){13, row, 6, 1}, bright);
+		GFX_fill((rect_t){5, row, 5, 1}, bright);
+		GFX_fill((rect_t){13, row, 6, 1}, bright);
 	} else if (frame == 17) {
-		GFX_fill((struct rect){5, row, 13, 1}, bright);
+		GFX_fill((rect_t){5, row, 13, 1}, bright);
 		GFX_putpixel(19, row, bright);
 	} else if (frame == 18) {
-		GFX_fill((struct rect){6, row, 11, 1}, bright);
-		GFX_fill((struct rect){18, row, 2, 1}, bright);
+		GFX_fill((rect_t){6, row, 11, 1}, bright);
+		GFX_fill((rect_t){18, row, 2, 1}, bright);
 	} else if (frame == 19) {
 		GFX_putpixel(5, row, bright);
-		GFX_fill((struct rect){7, row, 9, 1}, bright);
-		GFX_fill((struct rect){17, row, 3, 1}, bright);
+		GFX_fill((rect_t){7, row, 9, 1}, bright);
+		GFX_fill((rect_t){17, row, 3, 1}, bright);
 	} else if (frame == 20) {
-		GFX_fill((struct rect){5, row, 2, 1}, bright);
-		GFX_fill((struct rect){9, row, 6, 1}, bright);
-		GFX_fill((struct rect){16, row, 4, 1}, bright);
+		GFX_fill((rect_t){5, row, 2, 1}, bright);
+		GFX_fill((rect_t){9, row, 6, 1}, bright);
+		GFX_fill((rect_t){16, row, 4, 1}, bright);
 	} else if (frame == 21) {
-		GFX_fill((struct rect){5, row, 4, 1}, bright);
-		GFX_fill((struct rect){11, row, 2, 1}, bright);
-		GFX_fill((struct rect){15, row, 5, 1}, bright);
+		GFX_fill((rect_t){5, row, 4, 1}, bright);
+		GFX_fill((rect_t){11, row, 2, 1}, bright);
+		GFX_fill((rect_t){15, row, 5, 1}, bright);
 	} else if (frame == 22) {
-		GFX_fill((struct rect){5, row, 6, 1}, bright);
-		GFX_fill((struct rect){13, row, 7, 1}, bright);
+		GFX_fill((rect_t){5, row, 6, 1}, bright);
+		GFX_fill((rect_t){13, row, 7, 1}, bright);
 	} else if (frame == 23 || frame == 24 || frame == 25) {
-		GFX_fill((struct rect){5, row, 6, 1}, bright);
-		GFX_fill((struct rect){12, row, 8, 1}, bright);
+		GFX_fill((rect_t){5, row, 6, 1}, bright);
+		GFX_fill((rect_t){12, row, 8, 1}, bright);
 	} else if (frame == 26) {
-		GFX_fill((struct rect){5, row, 6, 1}, bright);
-		GFX_fill((struct rect){12, row, 7, 1}, bright);
+		GFX_fill((rect_t){5, row, 6, 1}, bright);
+		GFX_fill((rect_t){12, row, 7, 1}, bright);
 	} else if (frame == 27) {
-		GFX_fill((struct rect){5, row, 6, 1}, bright);
-		GFX_fill((struct rect){12, row, 4, 1}, bright);
+		GFX_fill((rect_t){5, row, 6, 1}, bright);
+		GFX_fill((rect_t){12, row, 4, 1}, bright);
 	} else if (frame == 28) {
-		GFX_fill((struct rect){5, row, 6, 1}, bright);
-		GFX_fill((struct rect){12, row, 2, 1}, bright);
+		GFX_fill((rect_t){5, row, 6, 1}, bright);
+		GFX_fill((rect_t){12, row, 2, 1}, bright);
 	} else if (frame == 29) {
-		GFX_fill((struct rect){5, row, 4, 1}, bright);
+		GFX_fill((rect_t){5, row, 4, 1}, bright);
 	} else if (frame == 30) {
-		GFX_fill((struct rect){5, row, 2, 1}, bright);
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){5, row, 2, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
 	} else if (frame >= 31 && frame <= 35) {
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
 	} else if (frame == 36) {
 		GFX_putpixel(8, row, bright);
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
 		GFX_putpixel(14, row, bright);
 	} else if (frame == 37) {
-		GFX_fill((struct rect){8, row, 2, 1}, bright);
-		GFX_fill((struct rect){13, row, 2, 1}, bright);
+		GFX_fill((rect_t){8, row, 2, 1}, bright);
+		GFX_fill((rect_t){13, row, 2, 1}, bright);
 	} else if (frame == 38) {
-		GFX_fill((struct rect){8, row, 7, 1}, bright);
+		GFX_fill((rect_t){8, row, 7, 1}, bright);
 	} else if (frame == 39) {
-		GFX_fill((struct rect){9, row, 5, 1}, bright);
+		GFX_fill((rect_t){9, row, 5, 1}, bright);
 	} else if (frame == 40) {
-		GFX_fill((struct rect){10, row, 3, 1}, bright);
+		GFX_fill((rect_t){10, row, 3, 1}, bright);
 	}
 }
 
 /* whole screen rectangle, for basic text drawing */
-const struct rect screen_r = {0, 0, 24, 7};
+const rect_t screen_r = {0, 0, 24, 7};
 
 #define MAX_LEN 10
 
 uint8_t EEMEM ee_strings[4][MAX_LEN+1];
+uint8_t EEMEM ee_modes[4][MAX_LEN+1];
 
 int main(void)
 {
@@ -163,6 +161,7 @@ int main(void)
 		if (!('a' <= c && c <= 'z')) {
 			eeprom_write_byte(&ee_strings[i][0], 'a');
 			eeprom_write_byte(&ee_strings[i][1], 0);
+			eeprom_write_byte(&ee_modes[i][0], 3);
 			eeprom_busy_wait();
 		}
 	}
@@ -171,6 +170,7 @@ int main(void)
 
 	GFX_init();
 	char macro[MAX_LEN+1] = "a";
+	uint8_t macro_modes[MAX_LEN+1] = {3, 3, 3, 3, 3, 3};
 	int macro_len = 1;
 
 	/* program edit mode */
@@ -197,27 +197,27 @@ int main(void)
 	while (true) {
 		//Display home text
 		if (prog_mode_select) {
-			GFX_fill((struct rect){4, 0, 2, 1}, bright);
-			GFX_fill((struct rect){18, 0, 2, 1}, bright);
+			GFX_fill((rect_t){4, 0, 2, 1}, bright);
+			GFX_fill((rect_t){18, 0, 2, 1}, bright);
 			GFX_putpixel(3, 1, bright);
 			GFX_putpixel(6, 1, bright);
-			GFX_fill((struct rect){11, 1, 3, 1}, bright);
+			GFX_fill((rect_t){11, 1, 3, 1}, bright);
 			GFX_putpixel(17, 1, bright);
 			GFX_putpixel(20, 1, bright);
 			GFX_putpixel(6, 2, bright);
 			GFX_putpixel(11, 2, bright);
 			GFX_putpixel(13, 2, bright);
 			GFX_putpixel(20, 2, bright);
-			GFX_fill((struct rect){4, 3, 2, 1}, bright);
-			GFX_fill((struct rect){9, 3, 7, 1}, bright);
-			GFX_fill((struct rect){18, 3, 2, 1}, bright);
+			GFX_fill((rect_t){4, 3, 2, 1}, bright);
+			GFX_fill((rect_t){9, 3, 7, 1}, bright);
+			GFX_fill((rect_t){18, 3, 2, 1}, bright);
 			GFX_putpixel(4, 4, bright);
 			GFX_putpixel(9, 4, bright);
 			GFX_putpixel(11, 4, bright);
 			GFX_putpixel(13, 4, bright);
 			GFX_putpixel(15, 4, bright);
 			GFX_putpixel(18, 4, bright);
-			GFX_fill((struct rect){9, 5, 7, 1}, bright);
+			GFX_fill((rect_t){9, 5, 7, 1}, bright);
 			GFX_putpixel(4, 6, bright);
 			GFX_putpixel(18, 6, bright);
 			GFX_swap();
@@ -271,6 +271,16 @@ int main(void)
 					GFX_put_text(screen_r, 0, 0, macro, macro_len, bright, 0);
 				else
 					GFX_put_text(screen_r, 0, 0, macro, macro_len-1, bright, 0);
+				for (uint8_t i = 0; i < macro_len; ++i) {
+					if (macro_modes[i] & 0x01) {
+						GFX_putpixel(i*6+5, 6, 2);
+						GFX_putpixel(i*6+5, 5, 1);
+					}
+					if (macro_modes[i] & 0x02) {
+						GFX_putpixel(i*6+5, 0, 2);
+						GFX_putpixel(i*6+5, 1, 1);
+					}
+				}
 			} else {
 				// Display text past 3 characters that is scrolled
 				int position = (macro_len - 4) * -6;
@@ -278,6 +288,16 @@ int main(void)
 					GFX_put_text(screen_r, position, 0, macro, macro_len, bright, 0);
 				else
 					GFX_put_text(screen_r, position, 0, macro, macro_len-1, bright, 0);
+				for (uint8_t i = 0; i < 4; ++i) {
+					if (macro_modes[macro_len - 4 + i] & 0x01) {
+						GFX_putpixel(i*6+5, 6, 2);
+						GFX_putpixel(i*6+5, 5, 1);
+					}
+					if (macro_modes[macro_len - 4 + i] & 0x02) {
+						GFX_putpixel(i*6+5, 0, 2);
+						GFX_putpixel(i*6+5, 1, 1);
+					}
+				}
 			}
 			GFX_swap();
 		}
@@ -285,15 +305,15 @@ int main(void)
 		//Poll Keys
 		int clicked = 0;
 		int held = 0;
+		int released = 0;
 		for (int i = 0; i < 5; ++i) {
 			if (BUTTONS_has_been_clicked(i))
 				clicked = i+1;
 			if (BUTTONS_has_been_held(i))
 				held = i+1;
+			if (BUTTONS_has_been_released(i))
+				released = i+1;
 		}
-		if (!clicked && !held)
-			continue;
-
 		if (prog_mode > 0) {
 			/* check key clicks */
 			switch (clicked) {
@@ -320,6 +340,7 @@ int main(void)
 				//ADD LETTER TO TEMP_STRING
 				if (macro_len < MAX_LEN) {
 					macro[macro_len] = 'a';
+					macro_modes[macro_len] = 3;
 					++macro_len;
 					macro[macro_len] = 0;
 				}
@@ -331,23 +352,26 @@ int main(void)
 			/* check key holds */
 			if (held == K_PROG) {
 				eeprom_write_block(macro, &ee_strings[prog_mode-1], MAX_LEN+1);
+				eeprom_write_block(macro_modes, &ee_modes[prog_mode-1], MAX_LEN+1);
 				eeprom_busy_wait();
 				prog_mode = 0;
 				TIME_delay_ms(300);
+			} else if (released == K_PROG) {
+				if (++macro_modes[macro_len - 1] > 3)
+					macro_modes[macro_len - 1] = 1;
 			}
 		} else if (prog_mode_select) {
-			if (clicked < 5) {
+			if (1 <= clicked && clicked <= 4) {
 				//UP, DOWN, LEFT, RIGHT ARROW
 				prog_mode = clicked;
 				prog_mode_select = false;
 				/* initialize temp_strig */
 				eeprom_read_block(macro, &ee_strings[clicked-1], MAX_LEN+1);
+				eeprom_read_block(macro_modes, &ee_modes[clicked-1], MAX_LEN+1);
 				eeprom_busy_wait();
 				macro_len = strlen(macro);
-
 				TIME_delay_ms(300);
-			} else {
-				//PROG BUTTON
+			} else if (clicked == K_PROG) {
 				prog_mode = 0;
 				prog_mode_select = false;
 				TIME_delay_ms(300);
@@ -361,15 +385,20 @@ int main(void)
 				//TODO
 			} else if (clicked > 0) {
 				eeprom_read_block(macro, &ee_strings[clicked-1], MAX_LEN+1);
+				eeprom_read_block(macro_modes, &ee_modes[clicked-1], MAX_LEN+1);
 				macro_len = strlen(macro);
 				eeprom_busy_wait();
 				for (int i = 0; i < macro_len; ++i) {
-					HID_set_scancode_state(KA + macro[i] - 'a', true);
-					HID_commit_state();
-					TIME_delay_ms(10);
-					HID_set_scancode_state(KA + macro[i] - 'a', false);
-					HID_commit_state();
-					TIME_delay_ms(10);
+					if (macro_modes[i] & 0x01) {
+						HID_set_scancode_state(KA + macro[i] - 'a', true);
+						HID_commit_state();
+						TIME_delay_ms(10);
+					}
+					if (macro_modes[i] & 0x02) {
+						HID_set_scancode_state(KA + macro[i] - 'a', false);
+						HID_commit_state();
+						TIME_delay_ms(10);
+					}
 				}
 				TIME_delay_ms(300);
 			}
