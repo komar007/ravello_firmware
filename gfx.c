@@ -76,7 +76,7 @@ void GFX_put_text(struct rect bbox, int x, int y,
 
 	for (int x = bbox.x, i = 0; i < len && x < bbox.x + width; ++x) {
 		if (col < 5) {
-			uint8_t letter = pgm_read_byte(&font[5*(*t - ' ') + col]);
+			uint8_t letter = pgm_read_byte(&font[5*(*t) + col]);
 			letter >>= firstbit;
 			for (int y = bbox.y; y < bbox.y + height; ++y, letter >>= 1)
 				GFX_putpixel(x, y, (letter & 1) ? fg : bg);
