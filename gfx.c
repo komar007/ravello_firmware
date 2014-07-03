@@ -89,3 +89,17 @@ void GFX_put_text(struct rect bbox, int x, int y,
 		}
 	}
 }
+
+void GFX_blit_progmem(struct rect bbox, const uint8_t *fbuffer,
+		uint8_t stride, uint8_t _x, uint8_t _y)
+{
+	uint8_t old_x = _x;
+	for (uint8_t y = bbox.y; y < bbox.y+bbox.h; ++y, ++_y) {
+		_x = old_x;
+		for (uint8_t x = bbox.x; x < bbox.x+bbox.w; ++x, ++_x) {
+			const uint8_t * const pix = fbuffer + _y*stride + _x/2;
+			const uint8_t val = (pgm_read_byte(pix) >> (4*(_x&1))) & 0x0f;
+			GFX_putpixel(x, y, val);
+		}
+	}
+}
