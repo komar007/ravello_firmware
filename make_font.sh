@@ -15,13 +15,13 @@ convert -compress none $gfx -rotate 90 $pbm
 		&& cat $pbm \
 			| sed '1d;2d' \
 			| tr -d '\n ' \
-			| sed 's/\(\([01]\)\{8\}\)/\1\n/g' \
+			| sed -r 's/([01]{8})/\1\n/g' \
 	) \
 		| bc \
 		| awk '(NR-1)%6!=5 {printf("0x%.2X, ", $0)} (NR-1)%6==5 {printf("\n")}' \
-		| sed 's/^/\t/g' \
-		| sed 's/ $//g' \
-		| sed '$s/,$//g'
+		| sed -r 's/^/\t/g' \
+		| sed -r 's/ $//g' \
+		| sed -r '$s/,$//g'
 	echo '};'
 ) > font.h
 
