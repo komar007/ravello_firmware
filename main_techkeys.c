@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "main.h"
 #include "usb_keyboard.h"
@@ -52,15 +53,14 @@ const uint8_t PROGMEM question[] = {
 	0x0C, 0x00, 0x30, 0x12, 0x1C, 0x48, 0x02, 0x14,
 	0x08, 0x0C, 0x7F, 0x30, 0x08, 0x55, 0x20, 0x00,
 	0x7F, 0x00, 0x08, 0x00, 0x20
-};	
+};
 
 /* whole screen rectangle, for basic text drawing */
 const rect_t screen_r = {0, 0, 24, 7};
 
-#define MAX_LEN 10
+#define MAX_LEN 50
 
 uint8_t EEMEM ee_strings[4][MAX_LEN+1];
-uint8_t EEMEM ee_modes[4][MAX_LEN+1];
 
 int main(void)
 {
@@ -79,7 +79,6 @@ int main(void)
 		if (!('a' <= c && c <= 'z')) {
 			eeprom_write_byte(&ee_strings[i][0], 'a');
 			eeprom_write_byte(&ee_strings[i][1], 0);
-			eeprom_write_byte(&ee_modes[i][0], 3);
 			eeprom_busy_wait();
 		}
 	}
@@ -88,7 +87,6 @@ int main(void)
 
 	GFX_init();
 	char macro[MAX_LEN+1] = "a";
-	uint8_t macro_modes[MAX_LEN+1] = {3, 3, 3, 3, 3, 3};
 	int macro_len = 1;
 
 	/* program edit mode */
@@ -136,16 +134,6 @@ int main(void)
 					GFX_put_text(screen_r, 0, 0, macro, macro_len, bright, 0);
 				else
 					GFX_put_text(screen_r, 0, 0, macro, macro_len-1, bright, 0);
-				for (uint8_t i = 0; i < macro_len; ++i) {
-					if (macro_modes[i] & 0x01) {
-						GFX_putpixel(i*6+5, 6, 2);
-						GFX_putpixel(i*6+5, 5, 1);
-					}
-					if (macro_modes[i] & 0x02) {
-						GFX_putpixel(i*6+5, 0, 2);
-						GFX_putpixel(i*6+5, 1, 1);
-					}
-				}
 			} else {
 				// Display text past 3 characters that is scrolled
 				int position = (macro_len - 4) * -6;
@@ -153,16 +141,6 @@ int main(void)
 					GFX_put_text(screen_r, position, 0, macro, macro_len, bright, 0);
 				else
 					GFX_put_text(screen_r, position, 0, macro, macro_len-1, bright, 0);
-				for (uint8_t i = 0; i < 4; ++i) {
-					if (macro_modes[macro_len - 4 + i] & 0x01) {
-						GFX_putpixel(i*6+5, 6, 2);
-						GFX_putpixel(i*6+5, 5, 1);
-					}
-					if (macro_modes[macro_len - 4 + i] & 0x02) {
-						GFX_putpixel(i*6+5, 0, 2);
-						GFX_putpixel(i*6+5, 1, 1);
-					}
-				}
 			}
 			GFX_swap();
 		}
@@ -183,13 +161,28 @@ int main(void)
 			/* check key clicks */
 			switch (clicked) {
 			case K_UP:
-				//THERE HAS TO BE A BETTER WAY...
-				if (--macro[macro_len-1] < 'a')
-					macro[macro_len-1] = 'a';
+				--macro[macro_len-1];
+				if (macro[macro_len-1] == 'a' - 1)
+					macro[macro_len-1] = 'z';
+				else if (macro[macro_len-1] == 'A' - 1)
+					macro[macro_len-1] = 'Z';
+
+				else if (macro[macro_len-1] == '{' - 1)
+					macro[macro_len-1] = '`';
+				else if (macro[macro_len-1] == '[' - 1)
+					macro[macro_len-1] = '@';
+				else if (macro[macro_len-1] == ':' - 1)
+					macro[macro_len-1] = '/';
+				else if (macro[macro_len-1] == '!' - 1)
+					macro[macro_len-1] = '9';
+				else if (macro[macro_len-1] == '0' - 1)
+					macro[macro_len-1] = '~';
+
+				else if (macro[macro_len-1] == -1)
+					macro[macro_len-1] = 11;
 				TIME_delay_ms(150);
 				break;
 			case K_LEFT:
-				//TODO SHORTEN TEMP_STRING BY 1
 				if (macro_len > 1) {
 					macro[macro_len - 1] = 0;
 					--macro_len;
@@ -197,15 +190,31 @@ int main(void)
 				TIME_delay_ms(300);
 				break;
 			case K_DOWN:
-				if (++macro[macro_len-1] > 'z')
-					macro[macro_len-1] = 'z';
+				++macro[macro_len-1];
+				if (macro[macro_len-1] == 'z' + 1)
+					macro[macro_len-1] = 'a';
+				else if (macro[macro_len-1] == 'Z' + 1)
+					macro[macro_len-1] = 'A';
+
+				else if (macro[macro_len-1] == '9' + 1)
+					macro[macro_len-1] = '!';
+				else if (macro[macro_len-1] == '/' + 1)
+					macro[macro_len-1] = ':';
+				else if (macro[macro_len-1] == '@' + 1)
+					macro[macro_len-1] = '[';
+				else if (macro[macro_len-1] == '`' + 1)
+					macro[macro_len-1] = '{';
+				else if (macro[macro_len-1] == '~' + 1)
+					macro[macro_len-1] = '0';
+
+				else if (macro[macro_len-1] == 12)
+					macro[macro_len-1] = 0;
 				TIME_delay_ms(150);
 				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
 				if (macro_len < MAX_LEN) {
 					macro[macro_len] = 'a';
-					macro_modes[macro_len] = 3;
 					++macro_len;
 					macro[macro_len] = 0;
 				}
@@ -217,13 +226,18 @@ int main(void)
 			/* check key holds */
 			if (held == K_PROG) {
 				eeprom_write_block(macro, &ee_strings[prog_mode-1], MAX_LEN+1);
-				eeprom_write_block(macro_modes, &ee_modes[prog_mode-1], MAX_LEN+1);
 				eeprom_busy_wait();
 				prog_mode = 0;
 				TIME_delay_ms(300);
 			} else if (released == K_PROG) {
-				if (++macro_modes[macro_len - 1] > 3)
-					macro_modes[macro_len - 1] = 1;
+				if (islower(macro[macro_len-1]))
+					macro[macro_len-1] = 'A';
+				else if (isupper(macro[macro_len-1]))
+					macro[macro_len-1] = '0';
+				else if (macro[macro_len-1] >= 32)
+					macro[macro_len-1] = 0;
+				else
+					macro[macro_len-1] = 'a';
 			}
 		} else if (prog_mode_select) {
 			if (0 <= clicked && clicked <= 3) {
@@ -232,7 +246,6 @@ int main(void)
 				prog_mode_select = false;
 				/* initialize temp_strig */
 				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
-				eeprom_read_block(macro_modes, &ee_modes[clicked], MAX_LEN+1);
 				eeprom_busy_wait();
 				macro_len = strlen(macro);
 				TIME_delay_ms(300);
@@ -250,20 +263,250 @@ int main(void)
 				//TODO
 			} else if (clicked >= 0) {
 				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
-				eeprom_read_block(macro_modes, &ee_modes[clicked], MAX_LEN+1);
 				macro_len = strlen(macro);
 				eeprom_busy_wait();
+				uint8_t must_release = 0;
 				for (int i = 0; i < macro_len; ++i) {
-					if (macro_modes[i] & 0x01) {
+					if (islower(macro[i])) {
 						HID_set_scancode_state(KA + macro[i] - 'a', true);
 						HID_commit_state();
-						TIME_delay_ms(10);
-					}
-					if (macro_modes[i] & 0x02) {
+						TIME_delay_ms(5);
 						HID_set_scancode_state(KA + macro[i] - 'a', false);
 						HID_commit_state();
-						TIME_delay_ms(10);
+						TIME_delay_ms(5);
+					} else if (isupper(macro[i])) {
+						HID_set_scancode_state(KLEFT_SHIFT, true);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						HID_set_scancode_state(KA + macro[i] - 'A', true);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						HID_set_scancode_state(KA + macro[i] - 'A', false);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						HID_set_scancode_state(KLEFT_SHIFT, false);
+						HID_commit_state();
+						TIME_delay_ms(5);
+					} else if (macro[i] >= 32) {
+						bool need_shift = false;
+						uint8_t code = 0;
+						switch (macro[i]) {
+						case '0':
+							code = K0;
+							break;
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+							code = K1 + macro[i] - '1';
+							break;
+						case '"':
+							code = KQUOTE;
+							need_shift = true;
+							break;
+						case '!':
+							code = K1;
+							need_shift = true;
+							break;
+						case '@':
+							code = K2;
+							need_shift = true;
+							break;
+						case '#':
+							code = K3;
+							need_shift = true;
+							break;
+						case '$':
+							code = K4;
+							need_shift = true;
+							break;
+						case '%':
+							code = K5;
+							need_shift = true;
+							break;
+						case '^':
+							code = K6;
+							need_shift = true;
+							break;
+						case '&':
+							code = K7;
+							need_shift = true;
+							break;
+						case '*':
+							code = K8;
+							need_shift = true;
+							break;
+						case '(':
+							code = K9;
+							need_shift = true;
+							break;
+						case ')':
+							code = K0;
+							need_shift = true;
+							break;
+						case '_':
+							code = KMINUS;
+							need_shift = true;
+							break;
+						case '+':
+							code = KEQUAL;
+							need_shift = true;
+							break;
+						case '\'':
+							code = KQUOTE;
+							break;
+						case ',':
+							code = KCOMMA;
+							break;
+						case '-':
+							code = KMINUS;
+							break;
+						case '.':
+							code = KPERIOD;
+							break;
+						case '/':
+							code = KSLASH;
+							break;
+						case ':':
+							code = KSEMICOLON;
+							need_shift = true;
+							break;
+						case ';':
+							code = KSEMICOLON;
+							break;
+						case '<':
+							code = KCOMMA;
+							need_shift = true;
+							break;
+						case '=':
+							code = KEQUAL;
+							break;
+						case '>':
+							code = KPERIOD;
+							need_shift = true;
+							break;
+						case '?':
+							code = KSLASH;
+							need_shift = true;
+							break;
+						case '[':
+							code = KLEFT_BRACE;
+							break;
+						case '\\':
+							code = KBACKSLASH;
+							break;
+						case ']':
+							code = KRIGHT_BRACE;
+							break;
+						case '`':
+							code = KTILDE;
+							break;
+						case '{':
+							code = KLEFT_BRACE;
+							need_shift = true;
+							break;
+						case '|':
+							code = KBACKSLASH;
+							need_shift = true;
+						case '}':
+							code = KRIGHT_BRACE;
+							need_shift = true;
+							break;
+						case '~':
+							code = KTILDE;
+							need_shift = true;
+							break;
+						}
+						if (need_shift) {
+							HID_set_scancode_state(KLEFT_SHIFT, true);
+							HID_commit_state();
+							TIME_delay_ms(5);
+						}
+						HID_set_scancode_state(code, true);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						HID_set_scancode_state(code, false);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						if (need_shift) {
+							HID_set_scancode_state(KLEFT_SHIFT, false);
+							HID_commit_state();
+							TIME_delay_ms(5);
+						}
+					} else {
+						uint8_t code = 0;
+						bool release = false;
+						switch (macro[i]) {
+						case 0:
+							code = KRIGHT;
+							release = true;
+							break;
+						case 1:
+							code = KLEFT;
+							release = true;
+							break;
+						case 2:
+							code = KUP;
+							release = true;
+							break;
+						case 3:
+							code = KDOWN;
+							release = true;
+							break;
+						case 4:
+							must_release = code = KCTRL;
+							break;
+						case 5:
+							must_release = code = KALT;
+							break;
+						case 6:
+							must_release = code = KGUI;
+							break;
+						case 7:
+							break;
+						case 8:
+							must_release = code = KSHIFT;
+							break;
+						case 9:
+							code = KTAB;
+							release = true;
+							break;
+						case 10:
+							code = KESC;
+							release = true;
+							break;
+						case 11:
+							code = KENTER;
+							release = true;
+							break;
+						}
+
+						HID_set_scancode_state(code, true);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						if (release) {
+							HID_set_scancode_state(code, false);
+							HID_commit_state();
+							TIME_delay_ms(5);
+						}
+						continue;
 					}
+					if (must_release != 0) {
+						HID_set_scancode_state(must_release, false);
+						HID_commit_state();
+						TIME_delay_ms(5);
+						must_release = 0;
+					}
+				}
+				if (must_release != 0) {
+					HID_set_scancode_state(must_release, false);
+					HID_commit_state();
+					TIME_delay_ms(5);
 				}
 				TIME_delay_ms(300);
 			}
