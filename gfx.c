@@ -103,3 +103,22 @@ void GFX_blit_progmem(struct rect bbox, const uint8_t *fbuffer,
 		}
 	}
 }
+
+void GFX_draw_bitmap(struct rect bbox, uint8_t fg, uint8_t bg, const uint8_t *bbuffer,
+		uint8_t stride, uint8_t _x, uint8_t _y)
+{
+	const uint8_t *last_addr = NULL;
+	uint8_t last_read = 0;
+	for (uint8_t y = bbox.y; y < bbox.y+bbox.h; ++y) {
+		for (uint8_t x = bbox.x; x < bbox.x+bbox.w; ++x) {
+			const uint8_t rx = _x + x - bbox.x;
+			const uint8_t ry = _y + y - bbox.y;
+			const uint8_t *addr = bbuffer + ry*stride + rx/8;
+			if (addr != last_addr) {
+				last_read = pgm_read_byte(addr);
+				last_addr = addr;
+			}
+			GFX_putpixel(x, y, (last_read & (0x80 >> (rx%8))) ? fg : bg);
+		}
+	}
+}
