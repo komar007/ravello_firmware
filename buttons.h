@@ -5,6 +5,12 @@
 
 #define DEBOUNCE_DELAY_MS 50
 
+#define K_UP	0
+#define K_LEFT	1
+#define K_DOWN	2
+#define K_RIGHT	3
+#define K_PROG	4
+
 void BUTTONS_init();
 /* call every 1ms or so */
 void BUTTONS_task();

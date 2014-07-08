@@ -17,12 +17,6 @@
 #include "time.h"
 #include "buttons.h"
 
-#define K_UP	1
-#define K_LEFT	2
-#define K_DOWN	3
-#define K_RIGHT	4
-#define K_PROG	5
-
 const uint8_t PROGMEM robot[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -236,16 +230,16 @@ int main(void)
 		}
 
 		//Poll Keys
-		int clicked = 0;
-		int held = 0;
-		int released = 0;
+		int clicked = -1;
+		int held = -1;
+		int released = -1;
 		for (int i = 0; i < 5; ++i) {
 			if (BUTTONS_has_been_clicked(i))
-				clicked = i+1;
+				clicked = i;
 			if (BUTTONS_has_been_held(i))
-				held = i+1;
+				held = i;
 			if (BUTTONS_has_been_released(i))
-				released = i+1;
+				released = i;
 		}
 		if (prog_mode > 0) {
 			/* check key clicks */
@@ -294,13 +288,13 @@ int main(void)
 					macro_modes[macro_len - 1] = 1;
 			}
 		} else if (prog_mode_select) {
-			if (1 <= clicked && clicked <= 4) {
+			if (0 <= clicked && clicked <= 3) {
 				//UP, DOWN, LEFT, RIGHT ARROW
-				prog_mode = clicked;
+				prog_mode = clicked+1;
 				prog_mode_select = false;
 				/* initialize temp_strig */
-				eeprom_read_block(macro, &ee_strings[clicked-1], MAX_LEN+1);
-				eeprom_read_block(macro_modes, &ee_modes[clicked-1], MAX_LEN+1);
+				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
+				eeprom_read_block(macro_modes, &ee_modes[clicked], MAX_LEN+1);
 				eeprom_busy_wait();
 				macro_len = strlen(macro);
 				TIME_delay_ms(300);
@@ -316,9 +310,9 @@ int main(void)
 				TIME_delay_ms(300);
 			} else if (clicked == K_PROG) {
 				//TODO
-			} else if (clicked > 0) {
-				eeprom_read_block(macro, &ee_strings[clicked-1], MAX_LEN+1);
-				eeprom_read_block(macro_modes, &ee_modes[clicked-1], MAX_LEN+1);
+			} else if (clicked >= 0) {
+				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
+				eeprom_read_block(macro_modes, &ee_modes[clicked], MAX_LEN+1);
 				macro_len = strlen(macro);
 				eeprom_busy_wait();
 				for (int i = 0; i < macro_len; ++i) {
