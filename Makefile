@@ -40,10 +40,12 @@ bin/:
 
 bin/%.hex: bin/%.elf
 	avr-objcopy -R .eeprom -O ihex $^ $@
+bin/%_ee.hex: bin/%.elf
+	avr-objcopy --change-section-address .eeprom=0 -j .eeprom -O ihex $^ $@
 
 define TARGET_TEMPLATE=
 .PHONY: $1
-$1: bin/$$(RESULT_$1).hex
+$1: bin/$$(RESULT_$1).hex bin/$$(RESULT_$1)_ee.hex
 endef
 $(foreach target,$(TARGETS),$(eval $(call TARGET_TEMPLATE,$(target))))
 

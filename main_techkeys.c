@@ -60,7 +60,12 @@ const rect_t screen_r = {0, 0, 24, 7};
 
 #define MAX_LEN 50
 
-uint8_t EEMEM ee_strings[4][MAX_LEN+1];
+uint8_t EEMEM ee_strings[4][MAX_LEN+1] = {
+	"\x04lhttp://techkeys.us\x0b",
+	"\x04lhttp://fb.com/techkeysus\x0b",
+	"\x04lmailto:info@techkeys.us\x0b",
+	"Hello, World!"
+};
 
 int main(void)
 {
@@ -94,8 +99,6 @@ int main(void)
 	/* after holding "PROGRAM", waiting for key choice to reprogram */
 	bool prog_mode_select = false;
 
-	const uint8_t bright = 4;
-
 	TIME_delay_ms(200);
 	for (int i = 0; i < 40; ++i)
 	{
@@ -127,20 +130,19 @@ int main(void)
 						techkeys_scroll, 3, 0, (7000-t) / 50);
 			GFX_swap();
 		} else {
-			if (macro_len <= 4) {
-				// Display first 3 entry letters prior to scrolling
-				if (TIME_get() % 300 < 220)
-					GFX_put_text(screen_r, 0, 0, macro, macro_len, bright, 0);
-				else
-					GFX_put_text(screen_r, 0, 0, macro, macro_len-1, bright, 0);
-			} else {
-				// Display text past 3 characters that is scrolled
-				int position = (macro_len - 4) * -6;
-				if (TIME_get() % 300 < 220)
-					GFX_put_text(screen_r, position, 0, macro, macro_len, bright, 0);
-				else
-					GFX_put_text(screen_r, position, 0, macro, macro_len-1, bright, 0);
-			}
+			uint8_t bright;
+			int t = TIME_get() % 300;
+			if (t < 220)
+				bright = min(99, t)/20;
+			else
+				bright = min(49, (300-t))/10;
+			int position;
+			if (macro_len <= 4)
+				position = 0;
+			else
+				position = -6*(macro_len - 4);
+			GFX_put_text(screen_r, position, 0, macro, macro_len-1, 4, 0);
+			GFX_put_text(screen_r, position+6*(macro_len-1), 0, macro+macro_len-1, 1, bright, 0);
 			GFX_swap();
 		}
 
