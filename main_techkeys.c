@@ -205,7 +205,7 @@ int main(void)
 					macro[macro_len-1] = '~';
 
 				else if (macro[macro_len-1] == -1)
-					macro[macro_len-1] = 11;
+					macro[macro_len-1] = 12;
 				break;
 			case K_LEFT:
 				if (!scroll && macro_len > 1) {
@@ -237,7 +237,7 @@ int main(void)
 				else if (macro[macro_len-1] == '~' + 1)
 					macro[macro_len-1] = '0';
 
-				else if (macro[macro_len-1] == 12)
+				else if (macro[macro_len-1] == 13)
 					macro[macro_len-1] = 0;
 				break;
 			case K_RIGHT:
@@ -515,14 +515,17 @@ int main(void)
 							release = true;
 							break;
 						}
-
-						HID_set_scancode_state(code, true);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						if (release) {
-							HID_set_scancode_state(code, false);
+						if (macro[i] == 12) {
+							TIME_delay_ms(1000);
+						} else {
+							HID_set_scancode_state(code, true);
 							HID_commit_state();
 							TIME_delay_ms(5);
+							if (release) {
+								HID_set_scancode_state(code, false);
+								HID_commit_state();
+								TIME_delay_ms(5);
+							}
 						}
 						continue;
 					}
