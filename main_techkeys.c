@@ -76,7 +76,7 @@ int main(void)
 	for (int i = 0; i < 4; ++i) {
 		const char c = eeprom_read_byte(&ee_strings[i][0]);
 		eeprom_busy_wait();
-		if (!('a' <= c && c <= 'z')) {
+		if (c == -1) {
 			eeprom_write_byte(&ee_strings[i][0], 'a');
 			eeprom_write_byte(&ee_strings[i][1], 0);
 			eeprom_busy_wait();
@@ -126,7 +126,6 @@ int main(void)
 				GFX_draw_bitmap(screen_r, 2, 0,
 						techkeys_scroll, 3, 0, (7000-t) / 50);
 			GFX_swap();
-			TIME_delay_ms(30);
 		} else {
 			if (macro_len <= 4) {
 				// Display first 3 entry letters prior to scrolling
@@ -163,6 +162,8 @@ int main(void)
 			case K_UP:
 				--macro[macro_len-1];
 				if (macro[macro_len-1] == 'a' - 1)
+					macro[macro_len-1] = ' ';
+				else if (macro[macro_len-1] == ' ' - 1)
 					macro[macro_len-1] = 'z';
 				else if (macro[macro_len-1] == 'A' - 1)
 					macro[macro_len-1] = 'Z';
@@ -180,18 +181,18 @@ int main(void)
 
 				else if (macro[macro_len-1] == -1)
 					macro[macro_len-1] = 11;
-				TIME_delay_ms(150);
 				break;
 			case K_LEFT:
 				if (macro_len > 1) {
 					macro[macro_len - 1] = 0;
 					--macro_len;
 				}
-				TIME_delay_ms(300);
 				break;
 			case K_DOWN:
 				++macro[macro_len-1];
 				if (macro[macro_len-1] == 'z' + 1)
+					macro[macro_len-1] = ' ';
+				else if (macro[macro_len-1] == ' ' + 1)
 					macro[macro_len-1] = 'a';
 				else if (macro[macro_len-1] == 'Z' + 1)
 					macro[macro_len-1] = 'A';
@@ -209,7 +210,6 @@ int main(void)
 
 				else if (macro[macro_len-1] == 12)
 					macro[macro_len-1] = 0;
-				TIME_delay_ms(150);
 				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
@@ -218,7 +218,6 @@ int main(void)
 					++macro_len;
 					macro[macro_len] = 0;
 				}
-				TIME_delay_ms(150);
 				break;
 			default:
 				break;
@@ -228,7 +227,6 @@ int main(void)
 				eeprom_write_block(macro, &ee_strings[prog_mode-1], MAX_LEN+1);
 				eeprom_busy_wait();
 				prog_mode = 0;
-				TIME_delay_ms(300);
 			} else if (released == K_PROG) {
 				if (islower(macro[macro_len-1]))
 					macro[macro_len-1] = 'A';
@@ -248,17 +246,13 @@ int main(void)
 				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
 				eeprom_busy_wait();
 				macro_len = strlen(macro);
-				TIME_delay_ms(300);
 			} else if (clicked == K_PROG) {
 				prog_mode = 0;
 				prog_mode_select = false;
-				TIME_delay_ms(300);
 			}
 		} else { /* regular mode */
 			if (held == K_PROG) {
 				prog_mode_select = true;
-				//Delay to avoid immediate escape from prog mode
-				TIME_delay_ms(300);
 			} else if (clicked == K_PROG) {
 				//TODO
 			} else if (clicked >= 0) {
@@ -304,6 +298,9 @@ int main(void)
 						case '8':
 						case '9':
 							code = K1 + macro[i] - '1';
+							break;
+						case ' ':
+							code = KSPACE;
 							break;
 						case '"':
 							code = KQUOTE;
@@ -508,7 +505,6 @@ int main(void)
 					HID_commit_state();
 					TIME_delay_ms(5);
 				}
-				TIME_delay_ms(300);
 			}
 		}
 	}
