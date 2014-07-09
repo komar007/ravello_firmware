@@ -108,7 +108,28 @@ int main(void)
 	}
 	TIME_delay_ms(150);
 
+	int8_t scroll = 0;
+	int scroll_px = 0;
+	uint64_t scroll_start = 0;
 	while (true) {
+		if (scroll == 1) {
+			macro[macro_len] = 'a';
+			macro[macro_len+1] = 0;
+			scroll_px = -(int)(TIME_get() - scroll_start)*6/150;
+			if (scroll_px <= -6) {
+				scroll_px = 0;
+				++macro_len;
+				scroll = 0;
+			}
+		} else if (scroll == -1) {
+			scroll_px = (TIME_get() - scroll_start)*6/150;
+			if (scroll_px >= 6) {
+				scroll_px = 0;
+				macro[macro_len - 1] = 0;
+				--macro_len;
+				scroll = 0;
+			}
+		}
 		//Display home text
 		if (prog_mode_select) {
 			GFX_draw_bitmap(screen_r, 4, 0,
@@ -130,19 +151,21 @@ int main(void)
 						techkeys_scroll, 3, 0, (7000-t) / 50);
 			GFX_swap();
 		} else {
-			uint8_t bright;
+			uint8_t brightness;
 			int t = TIME_get() % 300;
 			if (t < 220)
-				bright = min(99, t)/20;
+				brightness = min(99, t)/20;
 			else
-				bright = min(49, (300-t))/10;
+				brightness = min(49, (300-t))/10;
 			int position;
 			if (macro_len <= 4)
-				position = 0;
+				position = scroll_px;
 			else
-				position = -6*(macro_len - 4);
-			GFX_put_text(screen_r, position, 0, macro, macro_len-1, 4, 0);
-			GFX_put_text(screen_r, position+6*(macro_len-1), 0, macro+macro_len-1, 1, bright, 0);
+				position = scroll_px - 6*(macro_len - 4);
+			GFX_put_text(screen_r, position, 0,
+					macro, macro_len - 1, 4, 0);
+			GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
+					macro + macro_len - 1, 1, brightness, 0);
 			GFX_swap();
 		}
 
@@ -185,9 +208,13 @@ int main(void)
 					macro[macro_len-1] = 11;
 				break;
 			case K_LEFT:
-				if (macro_len > 1) {
-					macro[macro_len - 1] = 0;
-					--macro_len;
+				if (!scroll && macro_len > 1) {
+					if (macro_len <= 4) {
+						macro[--macro_len] = 0;
+					} else {
+						scroll = -1;
+						scroll_start = TIME_get();
+					}
 				}
 				break;
 			case K_DOWN:
@@ -215,10 +242,14 @@ int main(void)
 				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
-				if (macro_len < MAX_LEN) {
-					macro[macro_len] = 'a';
-					++macro_len;
-					macro[macro_len] = 0;
+				if (!scroll && macro_len < MAX_LEN) {
+					if (macro_len < 4) {
+						macro[macro_len] = 'a';
+						macro[++macro_len] = 0;
+					} else {
+						scroll = 1;
+						scroll_start = TIME_get();
+					}
 				}
 				break;
 			default:
