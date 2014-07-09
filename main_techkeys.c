@@ -61,10 +61,10 @@ const rect_t screen_r = {0, 0, 24, 7};
 #define MAX_LEN 50
 
 uint8_t EEMEM ee_strings[4][MAX_LEN+1] = {
-	"\x04lhttp://techkeys.us\x0b",
-	"\x04lhttp://fb.com/techkeysus\x0b",
-	"\x04lmailto:info@techkeys.us\x0b",
-	"Hello, World!"
+	"Hello, World!",
+	"\x05lhttp://techkeys.us\x0c",
+	"\x05lhttp://fb.com/techkeysus\x0c",
+	"\x05lmailto:info@techkeys.us\x0c"
 };
 
 int main(void)
@@ -204,8 +204,8 @@ int main(void)
 				else if (macro[macro_len-1] == '0' - 1)
 					macro[macro_len-1] = '~';
 
-				else if (macro[macro_len-1] == -1)
-					macro[macro_len-1] = 12;
+				else if (macro[macro_len-1] == 0)
+					macro[macro_len-1] = 13;
 				break;
 			case K_LEFT:
 				if (!scroll && macro_len > 1) {
@@ -237,8 +237,8 @@ int main(void)
 				else if (macro[macro_len-1] == '~' + 1)
 					macro[macro_len-1] = '0';
 
-				else if (macro[macro_len-1] == 13)
-					macro[macro_len-1] = 0;
+				else if (macro[macro_len-1] == 14)
+					macro[macro_len-1] = 1;
 				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
@@ -266,7 +266,7 @@ int main(void)
 				else if (isupper(macro[macro_len-1]))
 					macro[macro_len-1] = '0';
 				else if (macro[macro_len-1] >= 32)
-					macro[macro_len-1] = 0;
+					macro[macro_len-1] = 1;
 				else
 					macro[macro_len-1] = 'a';
 			}
@@ -472,50 +472,50 @@ int main(void)
 						uint8_t code = 0;
 						bool release = false;
 						switch (macro[i]) {
-						case 0:
+						case 1:
 							code = KRIGHT;
 							release = true;
 							break;
-						case 1:
+						case 2:
 							code = KLEFT;
 							release = true;
 							break;
-						case 2:
+						case 3:
 							code = KUP;
 							release = true;
 							break;
-						case 3:
+						case 4:
 							code = KDOWN;
 							release = true;
 							break;
-						case 4:
+						case 5:
 							must_release = code = KCTRL;
 							break;
-						case 5:
+						case 6:
 							must_release = code = KALT;
 							break;
-						case 6:
+						case 7:
 							must_release = code = KGUI;
 							break;
-						case 7:
-							break;
 						case 8:
-							must_release = code = KSHIFT;
 							break;
 						case 9:
+							must_release = code = KSHIFT;
+							break;
+						case 10:
 							code = KTAB;
 							release = true;
 							break;
-						case 10:
+						case 11:
 							code = KESC;
 							release = true;
 							break;
-						case 11:
+						case 12:
 							code = KENTER;
 							release = true;
 							break;
 						}
-						if (macro[i] == 12) {
+						if (macro[i] == 13) {
 							TIME_delay_ms(1000);
 						} else {
 							HID_set_scancode_state(code, true);
