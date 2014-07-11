@@ -110,24 +110,33 @@ int main(void)
 
 	int8_t scroll = 0;
 	int scroll_px = 0;
-	uint64_t scroll_start = 0;
+	int trans_phase = 0;
+	uint64_t transition_start = 0;
+	char next_letter = 0;
 	while (true) {
 		if (scroll == 1) {
 			macro[macro_len] = 'a';
 			macro[macro_len+1] = 0;
-			scroll_px = -(int)(TIME_get() - scroll_start)*6/150;
+			scroll_px = -(int)(TIME_get() - transition_start)*6/150;
 			if (scroll_px <= -6) {
 				scroll_px = 0;
 				++macro_len;
 				scroll = 0;
 			}
 		} else if (scroll == -1) {
-			scroll_px = (TIME_get() - scroll_start)*6/150;
+			scroll_px = (TIME_get() - transition_start)*6/150;
 			if (scroll_px >= 6) {
 				scroll_px = 0;
 				macro[macro_len - 1] = 0;
 				--macro_len;
 				scroll = 0;
+			}
+		} else if (next_letter) {
+			trans_phase = (TIME_get() - transition_start)*5/130;
+			if (trans_phase >= 5) {
+				trans_phase = 0;
+				macro[macro_len-1] = next_letter;
+				next_letter = 0;
 			}
 		}
 		//Display home text
@@ -164,8 +173,18 @@ int main(void)
 				position = scroll_px - 6*(macro_len - 4);
 			GFX_put_text(screen_r, position, 0,
 					macro, macro_len - 1, 4, 0);
-			GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
-					macro + macro_len - 1, 1, brightness, 0);
+			if (!next_letter) {
+				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
+						macro + macro_len - 1, 1, brightness, 0);
+			} else {
+				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
+						macro + macro_len - 1, 1, 4 - trans_phase, 0);
+				char tmp[2];
+				tmp[0] = next_letter;
+				tmp[1] = 0;
+				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
+						tmp, 1, trans_phase, 0);
+			}
 			GFX_swap();
 		}
 
@@ -185,70 +204,76 @@ int main(void)
 			/* check key clicks */
 			switch (clicked) {
 			case K_UP:
-				--macro[macro_len-1];
-				if (macro[macro_len-1] == 'a' - 1)
-					macro[macro_len-1] = ' ';
-				else if (macro[macro_len-1] == ' ' - 1)
-					macro[macro_len-1] = 'z';
-				else if (macro[macro_len-1] == 'A' - 1)
-					macro[macro_len-1] = 'Z';
+				if (!next_letter && !scroll) {
+					next_letter = macro[macro_len-1] - 1;
+					if (next_letter == 'a' - 1)
+						next_letter = ' ';
+					else if (next_letter == ' ' - 1)
+						next_letter = 'z';
+					else if (next_letter == 'A' - 1)
+						next_letter = 'Z';
 
-				else if (macro[macro_len-1] == '{' - 1)
-					macro[macro_len-1] = '`';
-				else if (macro[macro_len-1] == '[' - 1)
-					macro[macro_len-1] = '@';
-				else if (macro[macro_len-1] == ':' - 1)
-					macro[macro_len-1] = '/';
-				else if (macro[macro_len-1] == '!' - 1)
-					macro[macro_len-1] = '9';
-				else if (macro[macro_len-1] == '0' - 1)
-					macro[macro_len-1] = '~';
+					else if (next_letter == '{' - 1)
+						next_letter = '`';
+					else if (next_letter == '[' - 1)
+						next_letter = '@';
+					else if (next_letter == ':' - 1)
+						next_letter = '/';
+					else if (next_letter == '!' - 1)
+						next_letter = '9';
+					else if (next_letter == '0' - 1)
+						next_letter = '~';
 
-				else if (macro[macro_len-1] == 0)
-					macro[macro_len-1] = 13;
+					else if (next_letter == 0)
+						next_letter = 13;
+					transition_start = TIME_get();
+				}
 				break;
 			case K_LEFT:
-				if (!scroll && macro_len > 1) {
+				if (!next_letter && !scroll && macro_len > 1) {
 					if (macro_len <= 4) {
 						macro[--macro_len] = 0;
 					} else {
 						scroll = -1;
-						scroll_start = TIME_get();
+						transition_start = TIME_get();
 					}
 				}
 				break;
 			case K_DOWN:
-				++macro[macro_len-1];
-				if (macro[macro_len-1] == 'z' + 1)
-					macro[macro_len-1] = ' ';
-				else if (macro[macro_len-1] == ' ' + 1)
-					macro[macro_len-1] = 'a';
-				else if (macro[macro_len-1] == 'Z' + 1)
-					macro[macro_len-1] = 'A';
+				if (!next_letter && !scroll) {
+					next_letter = macro[macro_len-1] + 1;
+					if (next_letter == 'z' + 1)
+						next_letter = ' ';
+					else if (next_letter == ' ' + 1)
+						next_letter = 'a';
+					else if (next_letter == 'Z' + 1)
+						next_letter = 'A';
 
-				else if (macro[macro_len-1] == '9' + 1)
-					macro[macro_len-1] = '!';
-				else if (macro[macro_len-1] == '/' + 1)
-					macro[macro_len-1] = ':';
-				else if (macro[macro_len-1] == '@' + 1)
-					macro[macro_len-1] = '[';
-				else if (macro[macro_len-1] == '`' + 1)
-					macro[macro_len-1] = '{';
-				else if (macro[macro_len-1] == '~' + 1)
-					macro[macro_len-1] = '0';
+					else if (next_letter == '9' + 1)
+						next_letter = '!';
+					else if (next_letter == '/' + 1)
+						next_letter = ':';
+					else if (next_letter == '@' + 1)
+						next_letter = '[';
+					else if (next_letter == '`' + 1)
+						next_letter = '{';
+					else if (next_letter == '~' + 1)
+						next_letter = '0';
 
-				else if (macro[macro_len-1] == 14)
-					macro[macro_len-1] = 1;
+					else if (next_letter == 14)
+						next_letter = 1;
+					transition_start = TIME_get();
+				}
 				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
-				if (!scroll && macro_len < MAX_LEN) {
+				if (!next_letter && !scroll && macro_len < MAX_LEN) {
 					if (macro_len < 4) {
 						macro[macro_len] = 'a';
 						macro[++macro_len] = 0;
 					} else {
 						scroll = 1;
-						scroll_start = TIME_get();
+						transition_start = TIME_get();
 					}
 				}
 				break;
@@ -443,6 +468,7 @@ int main(void)
 						case '|':
 							code = KBACKSLASH;
 							need_shift = true;
+							break;
 						case '}':
 							code = KRIGHT_BRACE;
 							need_shift = true;
