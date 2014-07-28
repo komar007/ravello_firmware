@@ -55,6 +55,138 @@ const uint8_t PROGMEM question[] = {
 	0x7F, 0x00, 0x08, 0x00, 0x20
 };
 
+#define SHIFT_MASK 0x80
+const uint8_t PROGMEM ascii_to_usb_code[] = {
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             0,
+	             KSPACE,
+	SHIFT_MASK | K1,
+	SHIFT_MASK | KQUOTE,
+	SHIFT_MASK | K3,
+	SHIFT_MASK | K4,
+	SHIFT_MASK | K5,
+	SHIFT_MASK | K7,
+	             KQUOTE,
+	SHIFT_MASK | K9,
+	SHIFT_MASK | K0,
+	SHIFT_MASK | K8,
+	SHIFT_MASK | KEQUAL,
+	             KCOMMA,
+	             KMINUS,
+	             KPERIOD,
+	             KSLASH,
+	             K0,
+	             K1,
+	             K2,
+	             K3,
+	             K4,
+	             K5,
+	             K6,
+	             K7,
+	             K8,
+	             K9,
+	SHIFT_MASK | KSEMICOLON,
+	             KSEMICOLON,
+	SHIFT_MASK | KCOMMA,
+	             KEQUAL,
+	SHIFT_MASK | KPERIOD,
+	SHIFT_MASK | KSLASH,
+	SHIFT_MASK | K2,
+	SHIFT_MASK | KA,
+	SHIFT_MASK | KB,
+	SHIFT_MASK | KC,
+	SHIFT_MASK | KD,
+	SHIFT_MASK | KE,
+	SHIFT_MASK | KF,
+	SHIFT_MASK | KG,
+	SHIFT_MASK | KH,
+	SHIFT_MASK | KI,
+	SHIFT_MASK | KJ,
+	SHIFT_MASK | KK,
+	SHIFT_MASK | KL,
+	SHIFT_MASK | KM,
+	SHIFT_MASK | KN,
+	SHIFT_MASK | KO,
+	SHIFT_MASK | KP,
+	SHIFT_MASK | KQ,
+	SHIFT_MASK | KR,
+	SHIFT_MASK | KS,
+	SHIFT_MASK | KT,
+	SHIFT_MASK | KU,
+	SHIFT_MASK | KV,
+	SHIFT_MASK | KW,
+	SHIFT_MASK | KX,
+	SHIFT_MASK | KY,
+	SHIFT_MASK | KZ,
+	             KLEFT_BRACE,
+	             KBACKSLASH,
+	             KRIGHT_BRACE,
+	SHIFT_MASK | K6,
+	SHIFT_MASK | KMINUS,
+	             KTILDE,
+	             KA,
+	             KB,
+	             KC,
+	             KD,
+	             KE,
+	             KF,
+	             KG,
+	             KH,
+	             KI,
+	             KJ,
+	             KK,
+	             KL,
+	             KM,
+	             KN,
+	             KO,
+	             KP,
+	             KQ,
+	             KR,
+	             KS,
+	             KT,
+	             KU,
+	             KV,
+	             KW,
+	             KX,
+	             KY,
+	             KZ,
+	SHIFT_MASK | KLEFT_BRACE,
+	SHIFT_MASK | KBACKSLASH,
+	SHIFT_MASK | KRIGHT_BRACE,
+	SHIFT_MASK | KTILDE,
+	             0
+};
+
 /* whole screen rectangle, for basic text drawing */
 const rect_t screen_r = {0, 0, 24, 7};
 
@@ -319,165 +451,10 @@ int main(void)
 				eeprom_busy_wait();
 				uint8_t must_release = 0;
 				for (int i = 0; i < macro_len; ++i) {
-					if (islower(macro[i])) {
-						HID_set_scancode_state(KA + macro[i] - 'a', true);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						HID_set_scancode_state(KA + macro[i] - 'a', false);
-						HID_commit_state();
-						TIME_delay_ms(5);
-					} else if (isupper(macro[i])) {
-						HID_set_scancode_state(KLEFT_SHIFT, true);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						HID_set_scancode_state(KA + macro[i] - 'A', true);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						HID_set_scancode_state(KA + macro[i] - 'A', false);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						HID_set_scancode_state(KLEFT_SHIFT, false);
-						HID_commit_state();
-						TIME_delay_ms(5);
-					} else if (macro[i] >= 32) {
-						bool need_shift = false;
-						uint8_t code = 0;
-						switch (macro[i]) {
-						case '0':
-							code = K0;
-							break;
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-							code = K1 + macro[i] - '1';
-							break;
-						case ' ':
-							code = KSPACE;
-							break;
-						case '"':
-							code = KQUOTE;
-							need_shift = true;
-							break;
-						case '!':
-							code = K1;
-							need_shift = true;
-							break;
-						case '@':
-							code = K2;
-							need_shift = true;
-							break;
-						case '#':
-							code = K3;
-							need_shift = true;
-							break;
-						case '$':
-							code = K4;
-							need_shift = true;
-							break;
-						case '%':
-							code = K5;
-							need_shift = true;
-							break;
-						case '^':
-							code = K6;
-							need_shift = true;
-							break;
-						case '&':
-							code = K7;
-							need_shift = true;
-							break;
-						case '*':
-							code = K8;
-							need_shift = true;
-							break;
-						case '(':
-							code = K9;
-							need_shift = true;
-							break;
-						case ')':
-							code = K0;
-							need_shift = true;
-							break;
-						case '_':
-							code = KMINUS;
-							need_shift = true;
-							break;
-						case '+':
-							code = KEQUAL;
-							need_shift = true;
-							break;
-						case '\'':
-							code = KQUOTE;
-							break;
-						case ',':
-							code = KCOMMA;
-							break;
-						case '-':
-							code = KMINUS;
-							break;
-						case '.':
-							code = KPERIOD;
-							break;
-						case '/':
-							code = KSLASH;
-							break;
-						case ':':
-							code = KSEMICOLON;
-							need_shift = true;
-							break;
-						case ';':
-							code = KSEMICOLON;
-							break;
-						case '<':
-							code = KCOMMA;
-							need_shift = true;
-							break;
-						case '=':
-							code = KEQUAL;
-							break;
-						case '>':
-							code = KPERIOD;
-							need_shift = true;
-							break;
-						case '?':
-							code = KSLASH;
-							need_shift = true;
-							break;
-						case '[':
-							code = KLEFT_BRACE;
-							break;
-						case '\\':
-							code = KBACKSLASH;
-							break;
-						case ']':
-							code = KRIGHT_BRACE;
-							break;
-						case '`':
-							code = KTILDE;
-							break;
-						case '{':
-							code = KLEFT_BRACE;
-							need_shift = true;
-							break;
-						case '|':
-							code = KBACKSLASH;
-							need_shift = true;
-							break;
-						case '}':
-							code = KRIGHT_BRACE;
-							need_shift = true;
-							break;
-						case '~':
-							code = KTILDE;
-							need_shift = true;
-							break;
-						}
+					if (macro[i] >= 32) {
+						uint8_t code = pgm_read_byte(&ascii_to_usb_code[macro[i]]);
+						bool need_shift = code & SHIFT_MASK;
+						code &= ~SHIFT_MASK;
 						if (need_shift) {
 							HID_set_scancode_state(KLEFT_SHIFT, true);
 							HID_commit_state();
