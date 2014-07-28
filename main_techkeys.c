@@ -160,13 +160,14 @@ int main(void)
 	TIME_delay_ms(150);
 
 	int8_t scroll = 0;
-	int scroll_px = 0;
 	int trans_phase = 0;
 	uint64_t transition_start = 0;
 	/* the letter the current last letter should morph to or 0 when no
 	 * morphing occurs */
 	char morphing_to_letter = 0;
 	while (true) {
+		/* render to screen */
+		int scroll_px = 0;
 		if (scroll == 1) {
 			macro[macro_len] = 'a';
 			macro[macro_len+1] = 0;
@@ -192,10 +193,9 @@ int main(void)
 				morphing_to_letter = 0;
 			}
 		}
-		//Display home text
+
 		if (prog_mode_select) {
-			GFX_draw_bitmap(screen_r, 4, 0,
-					question, 3, 0, 0);
+			GFX_draw_bitmap(screen_r, 4, 0, question, 3, 0, 0);
 		} else if (prog_mode == 0) {
 			const int t = TIME_get() % 7000;
 			if (t < 3000)
@@ -239,7 +239,7 @@ int main(void)
 		}
 		GFX_swap();
 
-		//Poll Keys
+		/* Poll all the keys */
 		int clicked = -1;
 		int held = -1;
 		int released = -1;
