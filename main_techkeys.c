@@ -58,18 +58,18 @@ const uint8_t PROGMEM question[] = {
 #define SHIFT_MASK 0x80
 const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             0,
+	             KRIGHT,
+	             KLEFT,
+	             KUP,
+	             KDOWN,
+	             KCTRL,
+	             KALT,
+	             KGUI,
 	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
+	             KSHIFT,
+	             KTAB,
+	             KESC,
+	             KENTER,
 	             0,
 	             0,
 	             0,
@@ -199,6 +199,134 @@ uint8_t EEMEM ee_strings[4][MAX_LEN+1] = {
 	"\x05lmailto:info@techkeys.us\x0c"
 };
 
+static uint8_t next_symbol(uint8_t symbol)
+{
+	if (symbol == 'z')
+		return ' ';
+	else if (symbol == ' ')
+		return 'a';
+	else if (symbol == 'Z')
+		return 'A';
+
+	else if (symbol == '9')
+		return '!';
+	else if (symbol == '/')
+		return ':';
+	else if (symbol == '@')
+		return '[';
+	else if (symbol == '`')
+		return '{';
+	else if (symbol == '~')
+		return '0';
+
+	else if (symbol == 13)
+		return 1;
+
+	return symbol+1;
+}
+
+static inline uint8_t prev_symbol(uint8_t symbol)
+{
+	if (symbol == 'a')
+		return ' ';
+	else if (symbol == ' ')
+		return 'z';
+	else if (symbol == 'A')
+		return 'Z';
+
+	else if (symbol == '{')
+		return '`';
+	else if (symbol == '[')
+		return '@';
+	else if (symbol == ':')
+		return '/';
+	else if (symbol == '!')
+		return '9';
+	else if (symbol == '0')
+		return '~';
+
+	else if (symbol == 1)
+		return 13;
+
+	return symbol-1;
+}
+
+void macro_write(const char *macro, uint8_t macro_len)
+{
+	/* keycode scheduled for release after the next keypress or 0 if nothing
+	 * should be released */
+	uint8_t scheduled_release = 0;
+	for (int i = 0; i < macro_len; ++i) {
+		if (macro[i] >= 32) {
+			uint8_t code = pgm_read_byte(&ascii_to_usb_code[macro[i]]);
+			bool need_shift = code & SHIFT_MASK;
+			code &= ~SHIFT_MASK;
+			if (need_shift) {
+				HID_set_scancode_state(KLEFT_SHIFT, true);
+				HID_commit_state();
+				TIME_delay_ms(5);
+			}
+			HID_set_scancode_state(code, true);
+			HID_commit_state();
+			TIME_delay_ms(5);
+			HID_set_scancode_state(code, false);
+			HID_commit_state();
+			TIME_delay_ms(5);
+			if (need_shift) {
+				HID_set_scancode_state(KLEFT_SHIFT, false);
+				HID_commit_state();
+				TIME_delay_ms(5);
+			}
+		} else {
+			uint8_t code = pgm_read_byte(&ascii_to_usb_code[macro[i]]);
+			bool release = false;
+			switch (macro[i]) {
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 10:
+			case 11:
+			case 12:
+				release = true;
+				break;
+			case 5:
+			case 6:
+			case 7:
+			case 9:
+				scheduled_release = code;
+				break;
+			case 8:
+				break;
+			}
+			if (macro[i] == 13) {
+				TIME_delay_ms(1000);
+			} else {
+				HID_set_scancode_state(code, true);
+				HID_commit_state();
+				TIME_delay_ms(5);
+				if (release) {
+					HID_set_scancode_state(code, false);
+					HID_commit_state();
+					TIME_delay_ms(5);
+				}
+			}
+			continue;
+		}
+		if (scheduled_release != 0) {
+			HID_set_scancode_state(scheduled_release, false);
+			HID_commit_state();
+			TIME_delay_ms(5);
+			scheduled_release = 0;
+		}
+	}
+	if (scheduled_release != 0) {
+		HID_set_scancode_state(scheduled_release, false);
+		HID_commit_state();
+		TIME_delay_ms(5);
+	}
+}
+
 int main(void)
 {
 	clock_prescale_set(clock_div_1);
@@ -244,7 +372,9 @@ int main(void)
 	int scroll_px = 0;
 	int trans_phase = 0;
 	uint64_t transition_start = 0;
-	char next_letter = 0;
+	/* the letter the current last letter should morph to or 0 when no
+	 * morphing occurs */
+	char morphing_to_letter = 0;
 	while (true) {
 		if (scroll == 1) {
 			macro[macro_len] = 'a';
@@ -263,19 +393,18 @@ int main(void)
 				--macro_len;
 				scroll = 0;
 			}
-		} else if (next_letter) {
+		} else if (morphing_to_letter) {
 			trans_phase = (TIME_get() - transition_start)*5/130;
 			if (trans_phase >= 5) {
 				trans_phase = 0;
-				macro[macro_len-1] = next_letter;
-				next_letter = 0;
+				macro[macro_len-1] = morphing_to_letter;
+				morphing_to_letter = 0;
 			}
 		}
 		//Display home text
 		if (prog_mode_select) {
 			GFX_draw_bitmap(screen_r, 4, 0,
 					question, 3, 0, 0);
-			GFX_swap();
 		} else if (prog_mode == 0) {
 			const int t = TIME_get() % 7000;
 			if (t < 3000)
@@ -290,7 +419,6 @@ int main(void)
 			else
 				GFX_draw_bitmap(screen_r, 2, 0,
 						techkeys_scroll, 3, 0, (7000-t) / 50);
-			GFX_swap();
 		} else {
 			uint8_t brightness;
 			int t = TIME_get() % 300;
@@ -305,20 +433,20 @@ int main(void)
 				position = scroll_px - 6*(macro_len - 4);
 			GFX_put_text(screen_r, position, 0,
 					macro, macro_len - 1, 4, 0);
-			if (!next_letter) {
+			if (!morphing_to_letter) {
 				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
 						macro + macro_len - 1, 1, brightness, 0);
 			} else {
 				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
 						macro + macro_len - 1, 1, 4 - trans_phase, 0);
 				char tmp[2];
-				tmp[0] = next_letter;
+				tmp[0] = morphing_to_letter;
 				tmp[1] = 0;
 				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
 						tmp, 1, trans_phase, 0);
 			}
-			GFX_swap();
 		}
+		GFX_swap();
 
 		//Poll Keys
 		int clicked = -1;
@@ -336,33 +464,19 @@ int main(void)
 			/* check key clicks */
 			switch (clicked) {
 			case K_UP:
-				if (!next_letter && !scroll) {
-					next_letter = macro[macro_len-1] - 1;
-					if (next_letter == 'a' - 1)
-						next_letter = ' ';
-					else if (next_letter == ' ' - 1)
-						next_letter = 'z';
-					else if (next_letter == 'A' - 1)
-						next_letter = 'Z';
-
-					else if (next_letter == '{' - 1)
-						next_letter = '`';
-					else if (next_letter == '[' - 1)
-						next_letter = '@';
-					else if (next_letter == ':' - 1)
-						next_letter = '/';
-					else if (next_letter == '!' - 1)
-						next_letter = '9';
-					else if (next_letter == '0' - 1)
-						next_letter = '~';
-
-					else if (next_letter == 0)
-						next_letter = 13;
+				if (!morphing_to_letter && !scroll) {
+					morphing_to_letter = prev_symbol(macro[macro_len-1]);
+					transition_start = TIME_get();
+				}
+				break;
+			case K_DOWN:
+				if (!morphing_to_letter && !scroll) {
+					morphing_to_letter = next_symbol(macro[macro_len-1]);
 					transition_start = TIME_get();
 				}
 				break;
 			case K_LEFT:
-				if (!next_letter && !scroll && macro_len > 1) {
+				if (!morphing_to_letter && !scroll && macro_len > 1) {
 					if (macro_len <= 4) {
 						macro[--macro_len] = 0;
 					} else {
@@ -371,35 +485,9 @@ int main(void)
 					}
 				}
 				break;
-			case K_DOWN:
-				if (!next_letter && !scroll) {
-					next_letter = macro[macro_len-1] + 1;
-					if (next_letter == 'z' + 1)
-						next_letter = ' ';
-					else if (next_letter == ' ' + 1)
-						next_letter = 'a';
-					else if (next_letter == 'Z' + 1)
-						next_letter = 'A';
-
-					else if (next_letter == '9' + 1)
-						next_letter = '!';
-					else if (next_letter == '/' + 1)
-						next_letter = ':';
-					else if (next_letter == '@' + 1)
-						next_letter = '[';
-					else if (next_letter == '`' + 1)
-						next_letter = '{';
-					else if (next_letter == '~' + 1)
-						next_letter = '0';
-
-					else if (next_letter == 14)
-						next_letter = 1;
-					transition_start = TIME_get();
-				}
-				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
-				if (!next_letter && !scroll && macro_len < MAX_LEN) {
+				if (!morphing_to_letter && !scroll && macro_len < MAX_LEN) {
 					if (macro_len < 4) {
 						macro[macro_len] = 'a';
 						macro[++macro_len] = 0;
@@ -449,101 +537,7 @@ int main(void)
 				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
 				macro_len = strlen(macro);
 				eeprom_busy_wait();
-				uint8_t must_release = 0;
-				for (int i = 0; i < macro_len; ++i) {
-					if (macro[i] >= 32) {
-						uint8_t code = pgm_read_byte(&ascii_to_usb_code[macro[i]]);
-						bool need_shift = code & SHIFT_MASK;
-						code &= ~SHIFT_MASK;
-						if (need_shift) {
-							HID_set_scancode_state(KLEFT_SHIFT, true);
-							HID_commit_state();
-							TIME_delay_ms(5);
-						}
-						HID_set_scancode_state(code, true);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						HID_set_scancode_state(code, false);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						if (need_shift) {
-							HID_set_scancode_state(KLEFT_SHIFT, false);
-							HID_commit_state();
-							TIME_delay_ms(5);
-						}
-					} else {
-						uint8_t code = 0;
-						bool release = false;
-						switch (macro[i]) {
-						case 1:
-							code = KRIGHT;
-							release = true;
-							break;
-						case 2:
-							code = KLEFT;
-							release = true;
-							break;
-						case 3:
-							code = KUP;
-							release = true;
-							break;
-						case 4:
-							code = KDOWN;
-							release = true;
-							break;
-						case 5:
-							must_release = code = KCTRL;
-							break;
-						case 6:
-							must_release = code = KALT;
-							break;
-						case 7:
-							must_release = code = KGUI;
-							break;
-						case 8:
-							break;
-						case 9:
-							must_release = code = KSHIFT;
-							break;
-						case 10:
-							code = KTAB;
-							release = true;
-							break;
-						case 11:
-							code = KESC;
-							release = true;
-							break;
-						case 12:
-							code = KENTER;
-							release = true;
-							break;
-						}
-						if (macro[i] == 13) {
-							TIME_delay_ms(1000);
-						} else {
-							HID_set_scancode_state(code, true);
-							HID_commit_state();
-							TIME_delay_ms(5);
-							if (release) {
-								HID_set_scancode_state(code, false);
-								HID_commit_state();
-								TIME_delay_ms(5);
-							}
-						}
-						continue;
-					}
-					if (must_release != 0) {
-						HID_set_scancode_state(must_release, false);
-						HID_commit_state();
-						TIME_delay_ms(5);
-						must_release = 0;
-					}
-				}
-				if (must_release != 0) {
-					HID_set_scancode_state(must_release, false);
-					HID_commit_state();
-					TIME_delay_ms(5);
-				}
+				macro_write(macro, macro_len);
 			}
 		}
 	}
