@@ -16,14 +16,13 @@ static volatile bool keyboard_send_now = false;
 static volatile uint8_t keyboard_leds = 0;
 static volatile bool leds_changed = false;
 
-/* 256-bit HID report to send to the host */
-static volatile uint8_t key_map[32] = {0};
 static volatile uint8_t six_keys[6] = {0};
+static volatile uint8_t mods = 0;
 
 void HID_send_boot_report()
 {
 	/* Send byte 28 of key_map, which is the state of modifiers */
-	USB_IN_write_byte(key_map[28]);
+	USB_IN_write_byte(mods);
 	/* send reserved byte (0) */
 	USB_IN_write_byte(0x00);
 	USB_IN_write_buffer((void*)six_keys, 6);
@@ -32,9 +31,11 @@ void HID_send_boot_report()
 void HID_send_report()
 {
 	switch (keyboard_protocol) {
+#if 0
 	case REPORT_PROTOCOL:
 		USB_IN_write_buffer((void*)key_map, 32);
 		break;
+#endif
 	case BOOT_PROTOCOL:
 		HID_send_boot_report();
 		break;
@@ -108,6 +109,7 @@ void HID_handle_sof()
 
 /* [API section] ----------------------------------------------------------- */
 
+#if 0
 /* Checks if a key is pressed */
 bool HID_scancode_is_pressed(uint8_t code)
 {
@@ -115,17 +117,26 @@ bool HID_scancode_is_pressed(uint8_t code)
 	uint8_t bit_no = code & 0x07;
 	return key_map[byte_no] & _BV(bit_no);
 }
+#endif
 
 void HID_set_scancode_state(uint8_t code, bool state)
 {
+#if 0
 	uint8_t byte_no = code / 8;
 	uint8_t bit_no = code & 0x07;
 	if (state == false)
 		key_map[byte_no] &= ~_BV(bit_no);
 	else
 		key_map[byte_no] |= _BV(bit_no);
+#endif
 	/* The part below is not tested! */
 	if (keyboard_protocol == BOOT_PROTOCOL) {
+		if (code / 8 == 28) {
+			if (state)
+				mods |= _BV(code & 0x07);
+			else
+				mods &= ~_BV(code & 0x07);
+		}
 		if (state == true) {
 			uint8_t pos = 0;
 			for (; pos < 6 && six_keys[pos] != 0; ++pos)

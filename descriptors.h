@@ -160,8 +160,8 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	0,					// bAlternateSetting
 	1,					// bNumEndpoints
 	0x03,					// bInterfaceClass (0x03 = HID)
-	0x00,					// bInterfaceSubClass (0x01 = Boot)
-	0x00,					// bInterfaceProtocol (0x01 = Keyboard)
+	0x01,					// bInterfaceSubClass (0x01 = Boot)
+	0x01,					// bInterfaceProtocol (0x01 = Keyboard)
 	0,					// iInterface
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,					// bLength
