@@ -129,7 +129,7 @@ int main(void)
 	BUTTONS_init();
 
 	/* initialize eeprom */
-	for (int i = 0; i < 4; ++i) {
+	for (uint8_t i = 0; i < 4; ++i) {
 		const char c = eeprom_read_byte(&ee_strings[i][0]);
 		eeprom_busy_wait();
 		if (c == -1) {
@@ -143,15 +143,15 @@ int main(void)
 
 	GFX_init();
 	char macro[MAX_LEN+1] = "a";
-	int macro_len = 1;
+	uint8_t macro_len = 1;
 
 	/* program edit mode */
-	int prog_mode = 0;
+	int8_t prog_mode = 0;
 	/* after holding "PROGRAM", waiting for key choice to reprogram */
 	bool prog_mode_select = false;
 
 	TIME_delay_ms(200);
-	for (int i = 0; i < 40; ++i)
+	for (uint8_t i = 0; i < 40; ++i)
 	{
 		TIME_delay_ms(30);
 		GFX_draw_bitmap(screen_r, 4, 0, robot, 3, 0, i);
@@ -240,9 +240,9 @@ int main(void)
 		GFX_swap();
 
 		/* Poll all the keys */
-		int clicked = -1;
-		int held = -1;
-		int released = -1;
+		int8_t clicked = -1;
+		int8_t held = -1;
+		int8_t released = -1;
 		for (int i = 0; i < 5; ++i) {
 			if (BUTTONS_has_been_clicked(i))
 				clicked = i;
