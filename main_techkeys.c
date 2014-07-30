@@ -157,6 +157,8 @@ int main(void)
 		/* render to screen */
 		int scroll_px = 0;
 		if (scroll == 1) {
+			MACRO_set(macro_len, 'a');
+			MACRO_set(macro_len + 1, 0);
 			scroll_px = -(int)(TIME_get() - transition_start)*6/150;
 			if (scroll_px <= -6) {
 				scroll_px = 0;
