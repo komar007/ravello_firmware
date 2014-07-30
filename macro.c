@@ -17,7 +17,7 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             KCTRL,
 	             KALT,
 	             KGUI,
-	             0, /* meta */
+	             KMENU,
 	             KSHIFT,
 	             KTAB,
 	             KESC,
@@ -37,7 +37,7 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             KCTRL,
 	             KALT,
 	             KGUI,
-	             0, /* meta */
+	             KMENU,
 	             KSHIFT,
 		     0,
 	             0,
@@ -216,10 +216,9 @@ void MACRO_write()
 			case 5:
 			case 6:
 			case 7:
+			case 8:
 			case 9:
 				scheduled_release = code;
-				break;
-			case 8:
 				break;
 			}
 			if (byte == 13) {

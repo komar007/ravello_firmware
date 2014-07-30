@@ -109,3 +109,4 @@
 #define KEYPAD_9	97
 #define KEYPAD_0	98
 #define KEYPAD_PERIOD	99
+#define KMENU		118
