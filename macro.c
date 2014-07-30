@@ -17,7 +17,7 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             KCTRL,
 	             KALT,
 	             KGUI,
-	             0,
+	             0, /* meta */
 	             KSHIFT,
 	             KTAB,
 	             KESC,
@@ -35,11 +35,11 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             0,
 	             0,
 	             0,
-	             0,
-	             0,
-	             0,
-	             0,
-	             0,
+	             KCTRL,
+	             KALT,
+	             KGUI,
+	             0, /* meta */
+	             KSHIFT,
 	             0,
 	             KSPACE,
 	SHIFT_MASK | K1,
@@ -177,10 +177,13 @@ void MACRO_write()
 		eeprom_busy_wait();
 		if (byte == '\0')
 			break;
-		if (byte >= 32) {
+		if (byte >= 0x20 || (byte >= 0x19 && byte <= 0x1d)) {
 			uint8_t code = pgm_read_byte(&ascii_to_usb_code[byte]);
 			bool need_shift = code & SHIFT_MASK;
-			code &= ~SHIFT_MASK;
+			if (byte >= 0x19 && byte <= 0x1d)
+				need_shift = false;
+			else
+				code &= ~SHIFT_MASK;
 			if (need_shift) {
 				HID_set_scancode_state(KLEFT_SHIFT, true);
 				HID_commit_state();

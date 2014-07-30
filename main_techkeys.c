@@ -86,6 +86,8 @@ static uint8_t next_symbol(uint8_t symbol)
 		return '0';
 
 	else if (symbol == 13)
+		return 0x19;
+	else if (symbol == 0x1d)
 		return 1;
 
 	return symbol+1;
@@ -112,6 +114,8 @@ static inline uint8_t prev_symbol(uint8_t symbol)
 		return '~';
 
 	else if (symbol == 1)
+		return 0x1d;
+	else if (symbol == 0x19)
 		return 13;
 
 	return symbol-1;
