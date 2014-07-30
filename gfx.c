@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 
 #define STRIDE 12
 
@@ -48,7 +49,7 @@ void GFX_fill(struct rect bbox, uint8_t color)
 }
 
 void GFX_put_text(struct rect bbox, int x, int y,
-		const char *t, int16_t len, uint8_t fg, uint8_t bg)
+		uint8_t src, const uint8_t *t, int16_t len, uint8_t fg, uint8_t bg)
 {
 	int8_t col = 0;
 	int8_t firstbit = 0;
@@ -76,50 +77,15 @@ void GFX_put_text(struct rect bbox, int x, int y,
 
 	for (int x = bbox.x, i = 0; i < len && x < bbox.x + width; ++x) {
 		if (col < 5) {
-			uint8_t letter = pgm_read_byte(&font[5*(*t) + col]);
-			letter >>= firstbit;
-			for (int y = bbox.y; y < bbox.y + height; ++y, letter >>= 1)
-				GFX_putpixel(x, y, (letter & 1) ? fg : bg);
-			++col;
-		} else {
-			for (int y = bbox.y; y < bbox.y + height; ++y)
-				GFX_putpixel(x, y, bg);
-			col = 0;
-			++t; ++i;
-		}
-	}
-}
-
-void GFX_put_textP(struct rect bbox, int x, int y,
-		const char *t, int16_t len, uint8_t fg, uint8_t bg)
-{
-	int8_t col = 0;
-	int8_t firstbit = 0;
-	int8_t height = bbox.h;
-	int8_t width = bbox.w;
-	if (x >= bbox.w || x <= -len*6) {
-		return;
-	} else if (x > 0) {
-		bbox.x += x;
-		width -= x;
-	} else {
-		t += (-x) / 6;
-		len -= (-x) / 6;
-		col = (-x) % 6;
-	}
-	if (y >= bbox.h || y <= -7) {
-		return;
-	} else if (y > 0) {
-		bbox.y += y;
-		height -= y;
-	} else {
-		firstbit = -y;
-		height += y;
-	}
-
-	for (int x = bbox.x, i = 0; i < len && x < bbox.x + width; ++x) {
-		if (col < 5) {
-			uint8_t byte = pgm_read_byte(t);
+			uint8_t byte;
+			switch(src) {
+			case TEXT_RAM:
+				byte = *t; break;
+			case TEXT_PGM:
+				byte = pgm_read_byte(t); break;
+			case TEXT_EEP:
+				byte = eeprom_read_byte(t); break;
+			}
 			uint8_t letter = pgm_read_byte(&font[5*(byte) + col]);
 			letter >>= firstbit;
 			for (int y = bbox.y; y < bbox.y + height; ++y, letter >>= 1)

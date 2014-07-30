@@ -139,7 +139,35 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             0
 };
 
-void macro_write(const uint8_t *macro)
+static uint8_t *macro;
+
+/* _macros is a pointer to EE space where macros are stored
+ * returns the length of macro, -1 on macro error (not ending with '\0') */
+int16_t MACRO_init(uint8_t _macro[])
+{
+	macro = _macro;
+	for (uint16_t i = 0; i < MACRO_MAX_LEN + 1; ++i)
+		if (eeprom_read_byte(&macro[i]) == '\0')
+			return i;
+	return -1;
+}
+
+uint8_t *MACRO_get_ptr()
+{
+	return macro;
+}
+
+void MACRO_set(uint8_t idx, uint8_t val)
+{
+	eeprom_write_byte(&macro[idx], val);
+}
+
+uint8_t MACRO_get(uint8_t idx)
+{
+	return eeprom_read_byte(&macro[idx]);
+}
+
+void MACRO_write()
 {
 	/* keycode scheduled for release after the next keypress or 0 if nothing
 	 * should be released */

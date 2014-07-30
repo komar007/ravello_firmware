@@ -58,9 +58,7 @@ const uint8_t PROGMEM question[] = {
 /* whole screen rectangle, for basic text drawing */
 const rect_t screen_r = {0, 0, 24, 7};
 
-#define MAX_LEN 50
-
-uint8_t EEMEM ee_strings[4][MAX_LEN+1] = {
+uint8_t EEMEM ee_strings[4][MACRO_MAX_LEN+1] = {
 	"Hello, World!",
 	"\x05lhttp://techkeys.us\x0c",
 	"\x05lhttp://fb.com/techkeysus\x0c",
@@ -128,21 +126,7 @@ int main(void)
 
 	BUTTONS_init();
 
-	/* initialize eeprom */
-	for (uint8_t i = 0; i < 4; ++i) {
-		const char c = eeprom_read_byte(&ee_strings[i][0]);
-		eeprom_busy_wait();
-		if (c == -1) {
-			eeprom_write_byte(&ee_strings[i][0], 'a');
-			eeprom_write_byte(&ee_strings[i][1], 0);
-			eeprom_busy_wait();
-		}
-	}
-
-	//TIMER_init();
-
 	GFX_init();
-	char macro[MAX_LEN+1] = "a";
 	uint8_t macro_len = 1;
 
 	/* program edit mode */
@@ -169,8 +153,8 @@ int main(void)
 		/* render to screen */
 		int scroll_px = 0;
 		if (scroll == 1) {
-			macro[macro_len] = 'a';
-			macro[macro_len+1] = 0;
+			MACRO_set(macro_len, 'a');
+			MACRO_set(macro_len + 1, 0);
 			scroll_px = -(int)(TIME_get() - transition_start)*6/150;
 			if (scroll_px <= -6) {
 				scroll_px = 0;
@@ -181,7 +165,7 @@ int main(void)
 			scroll_px = (TIME_get() - transition_start)*6/150;
 			if (scroll_px >= 6) {
 				scroll_px = 0;
-				macro[macro_len - 1] = 0;
+				MACRO_set(macro_len - 1, 0);
 				--macro_len;
 				scroll = 0;
 			}
@@ -189,7 +173,7 @@ int main(void)
 			trans_phase = (TIME_get() - transition_start)*5/130;
 			if (trans_phase >= 5) {
 				trans_phase = 0;
-				macro[macro_len-1] = morphing_to_letter;
+				MACRO_set(macro_len-1, morphing_to_letter);
 				morphing_to_letter = 0;
 			}
 		}
@@ -223,18 +207,18 @@ int main(void)
 			else
 				position = scroll_px - 6*(macro_len - 4);
 			GFX_put_text(screen_r, position, 0,
-					macro, macro_len - 1, 4, 0);
+					TEXT_EEP, MACRO_get_ptr(), macro_len - 1, 4, 0);
 			if (!morphing_to_letter) {
 				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
-						macro + macro_len - 1, 1, brightness, 0);
+						TEXT_EEP, MACRO_get_ptr() + macro_len - 1, 1, brightness, 0);
 			} else {
 				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
-						macro + macro_len - 1, 1, 4 - trans_phase, 0);
-				char tmp[2];
+						TEXT_EEP, MACRO_get_ptr() + macro_len - 1, 1, 4 - trans_phase, 0);
+				uint8_t tmp[2];
 				tmp[0] = morphing_to_letter;
 				tmp[1] = 0;
 				GFX_put_text(screen_r, position + 6*(macro_len-1), 0,
-						tmp, 1, trans_phase, 0);
+						TEXT_RAM, tmp, 1, trans_phase, 0);
 			}
 		}
 		GFX_swap();
@@ -256,20 +240,20 @@ int main(void)
 			switch (clicked) {
 			case K_UP:
 				if (!morphing_to_letter && !scroll) {
-					morphing_to_letter = prev_symbol(macro[macro_len-1]);
+					morphing_to_letter = prev_symbol(MACRO_get(macro_len-1));
 					transition_start = TIME_get();
 				}
 				break;
 			case K_DOWN:
 				if (!morphing_to_letter && !scroll) {
-					morphing_to_letter = next_symbol(macro[macro_len-1]);
+					morphing_to_letter = next_symbol(MACRO_get(macro_len-1));
 					transition_start = TIME_get();
 				}
 				break;
 			case K_LEFT:
 				if (!morphing_to_letter && !scroll && macro_len > 1) {
 					if (macro_len <= 4) {
-						macro[--macro_len] = 0;
+						MACRO_set(--macro_len, 0);
 					} else {
 						scroll = -1;
 						transition_start = TIME_get();
@@ -278,10 +262,10 @@ int main(void)
 				break;
 			case K_RIGHT:
 				//ADD LETTER TO TEMP_STRING
-				if (!morphing_to_letter && !scroll && macro_len < MAX_LEN) {
+				if (!morphing_to_letter && !scroll && macro_len < MACRO_MAX_LEN) {
 					if (macro_len < 4) {
-						macro[macro_len] = 'a';
-						macro[++macro_len] = 0;
+						MACRO_set(macro_len, 'a');
+						MACRO_set(++macro_len, 0);
 					} else {
 						scroll = 1;
 						transition_start = TIME_get();
@@ -293,28 +277,23 @@ int main(void)
 			}
 			/* check key holds */
 			if (held == K_PROG) {
-				eeprom_write_block(macro, &ee_strings[prog_mode-1], MAX_LEN+1);
-				eeprom_busy_wait();
 				prog_mode = 0;
 			} else if (released == K_PROG) {
-				if (islower(macro[macro_len-1]))
-					macro[macro_len-1] = 'A';
-				else if (isupper(macro[macro_len-1]))
-					macro[macro_len-1] = '0';
-				else if (macro[macro_len-1] >= 32)
-					macro[macro_len-1] = 1;
+				if (islower(MACRO_get(macro_len-1)))
+					MACRO_set(macro_len-1, 'A');
+				else if (isupper(MACRO_get(macro_len-1)))
+					MACRO_set(macro_len-1, '0');
+				else if (MACRO_get(macro_len-1) >= 32)
+					MACRO_set(macro_len-1, 1);
 				else
-					macro[macro_len-1] = 'a';
+					MACRO_set(macro_len-1, 'a');
 			}
 		} else if (prog_mode_select) {
 			if (0 <= clicked && clicked <= 3) {
 				//UP, DOWN, LEFT, RIGHT ARROW
 				prog_mode = clicked+1;
 				prog_mode_select = false;
-				/* initialize temp_strig */
-				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
-				eeprom_busy_wait();
-				macro_len = strlen(macro);
+				macro_len = MACRO_init(&ee_strings[clicked][0]);
 			} else if (clicked == K_PROG) {
 				prog_mode = 0;
 				prog_mode_select = false;
@@ -325,7 +304,8 @@ int main(void)
 			} else if (clicked == K_PROG) {
 				//TODO
 			} else if (clicked >= 0) {
-				macro_write(ee_strings[clicked]);
+				MACRO_init(&ee_strings[clicked][0]);
+				MACRO_write();
 			}
 		}
 	}
