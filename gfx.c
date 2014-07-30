@@ -90,6 +90,50 @@ void GFX_put_text(struct rect bbox, int x, int y,
 	}
 }
 
+void GFX_put_textP(struct rect bbox, int x, int y,
+		const char *t, int16_t len, uint8_t fg, uint8_t bg)
+{
+	int8_t col = 0;
+	int8_t firstbit = 0;
+	int8_t height = bbox.h;
+	int8_t width = bbox.w;
+	if (x >= bbox.w || x <= -len*6) {
+		return;
+	} else if (x > 0) {
+		bbox.x += x;
+		width -= x;
+	} else {
+		t += (-x) / 6;
+		len -= (-x) / 6;
+		col = (-x) % 6;
+	}
+	if (y >= bbox.h || y <= -7) {
+		return;
+	} else if (y > 0) {
+		bbox.y += y;
+		height -= y;
+	} else {
+		firstbit = -y;
+		height += y;
+	}
+
+	for (int x = bbox.x, i = 0; i < len && x < bbox.x + width; ++x) {
+		if (col < 5) {
+			uint8_t byte = pgm_read_byte(t);
+			uint8_t letter = pgm_read_byte(&font[5*(byte) + col]);
+			letter >>= firstbit;
+			for (int y = bbox.y; y < bbox.y + height; ++y, letter >>= 1)
+				GFX_putpixel(x, y, (letter & 1) ? fg : bg);
+			++col;
+		} else {
+			for (int y = bbox.y; y < bbox.y + height; ++y)
+				GFX_putpixel(x, y, bg);
+			col = 0;
+			++t; ++i;
+		}
+	}
+}
+
 void GFX_blit_progmem(struct rect bbox, const uint8_t *fbuffer,
 		uint8_t stride, uint8_t _x, uint8_t _y)
 {
