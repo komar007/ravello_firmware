@@ -319,8 +319,13 @@ int main(void)
 			} else if (clicked == K_PROG) {
 				//TODO
 			} else if (clicked >= 0) {
-				MACRO_init(&ee_strings[clicked][0]);
-				MACRO_write();
+				if (MACRO_init(&ee_strings[clicked][0]) == 1) {
+					MACRO_write(true, false);
+				} else {
+					MACRO_write(true, true);
+				}
+			} else if (released >= 0 && MACRO_init(&ee_strings[released][0]) == 1) {
+				MACRO_write(false, true);
 			}
 		}
 	}

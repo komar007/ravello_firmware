@@ -167,7 +167,7 @@ uint8_t MACRO_get(uint8_t idx)
 	return eeprom_read_byte(&macro[idx]);
 }
 
-void MACRO_write()
+void MACRO_write(bool should_press, bool should_release)
 {
 	/* keycode scheduled for release after the next keypress or 0 if nothing
 	 * should be released */
@@ -189,12 +189,16 @@ void MACRO_write()
 				HID_commit_state();
 				TIME_delay_ms(5);
 			}
-			HID_set_scancode_state(code, true);
-			HID_commit_state();
-			TIME_delay_ms(5);
-			HID_set_scancode_state(code, false);
-			HID_commit_state();
-			TIME_delay_ms(5);
+			if (should_press) {
+				HID_set_scancode_state(code, true);
+				HID_commit_state();
+				TIME_delay_ms(5);
+			}
+			if (should_release) {
+				HID_set_scancode_state(code, false);
+				HID_commit_state();
+				TIME_delay_ms(5);
+			}
 			if (need_shift) {
 				HID_set_scancode_state(KLEFT_SHIFT, false);
 				HID_commit_state();
@@ -224,10 +228,12 @@ void MACRO_write()
 			if (byte == 13) {
 				TIME_delay_ms(1000);
 			} else {
-				HID_set_scancode_state(code, true);
-				HID_commit_state();
-				TIME_delay_ms(5);
-				if (release) {
+				if (should_press) {
+					HID_set_scancode_state(code, true);
+					HID_commit_state();
+					TIME_delay_ms(5);
+				}
+				if (release && should_release) {
 					HID_set_scancode_state(code, false);
 					HID_commit_state();
 					TIME_delay_ms(5);
@@ -235,14 +241,14 @@ void MACRO_write()
 			}
 			continue;
 		}
-		if (scheduled_release != 0) {
+		if (scheduled_release != 0 && should_release) {
 			HID_set_scancode_state(scheduled_release, false);
 			HID_commit_state();
 			TIME_delay_ms(5);
 			scheduled_release = 0;
 		}
 	}
-	if (scheduled_release != 0) {
+	if (scheduled_release != 0 && should_release) {
 		HID_set_scancode_state(scheduled_release, false);
 		HID_commit_state();
 		TIME_delay_ms(5);
