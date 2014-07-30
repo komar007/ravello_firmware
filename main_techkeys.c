@@ -157,8 +157,6 @@ int main(void)
 		/* render to screen */
 		int scroll_px = 0;
 		if (scroll == 1) {
-			MACRO_set(macro_len, 'a');
-			MACRO_set(macro_len + 1, 0);
 			scroll_px = -(int)(TIME_get() - transition_start)*6/150;
 			if (scroll_px <= -6) {
 				scroll_px = 0;
@@ -244,13 +242,27 @@ int main(void)
 			switch (clicked) {
 			case K_UP:
 				if (!morphing_to_letter && !scroll) {
-					morphing_to_letter = prev_symbol(MACRO_get(macro_len-1));
+					morphing_to_letter = MACRO_get(macro_len - 1);
+					if (macro_len > 1 && is_sticky_mod(MACRO_get(macro_len - 2))) {
+						do
+							morphing_to_letter = prev_symbol(morphing_to_letter);
+						while (is_sticky_mod(morphing_to_letter));
+					} else {
+						morphing_to_letter = prev_symbol(morphing_to_letter);
+					}
 					transition_start = TIME_get();
 				}
 				break;
 			case K_DOWN:
 				if (!morphing_to_letter && !scroll) {
-					morphing_to_letter = next_symbol(MACRO_get(macro_len-1));
+					morphing_to_letter = MACRO_get(macro_len - 1);
+					if (macro_len > 1 && is_sticky_mod(MACRO_get(macro_len - 2))) {
+						do
+							morphing_to_letter = next_symbol(morphing_to_letter);
+						while (is_sticky_mod(morphing_to_letter));
+					} else {
+						morphing_to_letter = next_symbol(morphing_to_letter);
+					}
 					transition_start = TIME_get();
 				}
 				break;

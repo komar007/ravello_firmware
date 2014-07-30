@@ -177,10 +177,10 @@ void MACRO_write()
 		eeprom_busy_wait();
 		if (byte == '\0')
 			break;
-		if (byte >= 0x20 || (byte >= 0x19 && byte <= 0x1d)) {
+		if (byte >= 0x20 || is_mod(byte)) {
 			uint8_t code = pgm_read_byte(&ascii_to_usb_code[byte]);
 			bool need_shift = code & SHIFT_MASK;
-			if (byte >= 0x19 && byte <= 0x1d)
+			if (is_mod(byte))
 				need_shift = false;
 			else
 				code &= ~SHIFT_MASK;
