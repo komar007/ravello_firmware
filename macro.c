@@ -34,12 +34,12 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             0,
 	             0,
 	             0,
-	             0,
 	             KCTRL,
 	             KALT,
 	             KGUI,
 	             0, /* meta */
 	             KSHIFT,
+		     0,
 	             0,
 	             KSPACE,
 	SHIFT_MASK | K1,
