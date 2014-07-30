@@ -261,7 +261,6 @@ int main(void)
 				}
 				break;
 			case K_RIGHT:
-				//ADD LETTER TO TEMP_STRING
 				if (!morphing_to_letter && !scroll && macro_len < MACRO_MAX_LEN) {
 					if (macro_len < 4) {
 						MACRO_set(macro_len, 'a');

@@ -77,7 +77,7 @@ void GFX_put_text(struct rect bbox, int x, int y,
 
 	for (int x = bbox.x, i = 0; i < len && x < bbox.x + width; ++x) {
 		if (col < 5) {
-			uint8_t byte;
+			uint8_t byte = 0;
 			switch(src) {
 			case TEXT_RAM:
 				byte = *t; break;
