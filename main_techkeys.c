@@ -297,13 +297,14 @@ int main(void)
 				prog_mode = 0;
 			} else if (released == K_PROG) {
 				if (islower(MACRO_get(macro_len-1)))
-					MACRO_set(macro_len-1, 'A');
+					morphing_to_letter = 'A';
 				else if (isupper(MACRO_get(macro_len-1)))
-					MACRO_set(macro_len-1, '0');
+					morphing_to_letter ='0';
 				else if (MACRO_get(macro_len-1) >= 32)
-					MACRO_set(macro_len-1, 1);
+					morphing_to_letter = 1;
 				else
-					MACRO_set(macro_len-1, 'a');
+					morphing_to_letter = 'a';
+				transition_start = TIME_get();
 			}
 		} else if (prog_mode_select) {
 			if (0 <= clicked && clicked <= 3) {
