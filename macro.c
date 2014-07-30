@@ -4,6 +4,7 @@
 #include "hid.h"
 
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 #include <stdbool.h>
 
 #define SHIFT_MASK 0x80
@@ -138,14 +139,18 @@ const uint8_t PROGMEM ascii_to_usb_code[] = {
 	             0
 };
 
-void macro_write(const char *macro, uint8_t macro_len)
+void macro_write(const uint8_t *macro)
 {
 	/* keycode scheduled for release after the next keypress or 0 if nothing
 	 * should be released */
 	uint8_t scheduled_release = 0;
-	for (int i = 0; i < macro_len; ++i) {
-		if (macro[i] >= 32) {
-			uint8_t code = pgm_read_byte(&ascii_to_usb_code[macro[i]]);
+	for (int i = 0; ; ++i) {
+		uint8_t byte = eeprom_read_byte(&macro[i]);
+		eeprom_busy_wait();
+		if (byte == '\0')
+			break;
+		if (byte >= 32) {
+			uint8_t code = pgm_read_byte(&ascii_to_usb_code[byte]);
 			bool need_shift = code & SHIFT_MASK;
 			code &= ~SHIFT_MASK;
 			if (need_shift) {
@@ -165,9 +170,9 @@ void macro_write(const char *macro, uint8_t macro_len)
 				TIME_delay_ms(5);
 			}
 		} else {
-			uint8_t code = pgm_read_byte(&ascii_to_usb_code[macro[i]]);
+			uint8_t code = pgm_read_byte(&ascii_to_usb_code[byte]);
 			bool release = false;
-			switch (macro[i]) {
+			switch (byte) {
 			case 1:
 			case 2:
 			case 3:
@@ -186,7 +191,7 @@ void macro_write(const char *macro, uint8_t macro_len)
 			case 8:
 				break;
 			}
-			if (macro[i] == 13) {
+			if (byte == 13) {
 				TIME_delay_ms(1000);
 			} else {
 				HID_set_scancode_state(code, true);

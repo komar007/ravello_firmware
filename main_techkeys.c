@@ -325,10 +325,7 @@ int main(void)
 			} else if (clicked == K_PROG) {
 				//TODO
 			} else if (clicked >= 0) {
-				eeprom_read_block(macro, &ee_strings[clicked], MAX_LEN+1);
-				macro_len = strlen(macro);
-				eeprom_busy_wait();
-				macro_write(macro, macro_len);
+				macro_write(ee_strings[clicked]);
 			}
 		}
 	}
