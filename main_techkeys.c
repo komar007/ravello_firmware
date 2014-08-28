@@ -11,7 +11,6 @@
 
 #include "usb.h"
 #include "main.h"
-#include "timer.h"
 #include "auxiliary.h"
 #include "gfx.h"
 #include "time.h"
@@ -334,10 +333,6 @@ int main(void)
 	}
 }
 
-
-void MAIN_timer_handler()
-{
-}
 
 void MAIN_handle_sof()
 {
