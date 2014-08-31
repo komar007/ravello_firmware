@@ -152,6 +152,7 @@ int main(void)
 	/* the letter the current last letter should morph to or 0 when no
 	 * morphing occurs */
 	char morphing_to_letter = 0;
+	bool once_released = false;
 	while (true) {
 		/* render to screen */
 		int scroll_px = 0;
@@ -226,22 +227,9 @@ int main(void)
 		}
 		GFX_swap();
 
-		/* Poll all the keys */
-		int8_t clicked = -1;
-		int8_t held = -1;
-		int8_t released = -1;
-		for (int i = 0; i < 5; ++i) {
-			if (BUTTONS_has_been_clicked(i))
-				clicked = i;
-			if (BUTTONS_has_been_held(i))
-				held = i;
-			if (BUTTONS_has_been_released(i))
-				released = i;
-		}
 		if (prog_mode > 0) {
 			/* check key clicks */
-			switch (clicked) {
-			case K_UP:
+			if (BUTTONS_has_been_clicked(K_UP)) {
 				if (!morphing_to_letter && !scroll) {
 					morphing_to_letter = MACRO_get(macro_len - 1);
 					if (macro_len > 1 && is_sticky_mod(MACRO_get(macro_len - 2))) {
@@ -253,8 +241,7 @@ int main(void)
 					}
 					transition_start = TIME_get();
 				}
-				break;
-			case K_DOWN:
+			} else if (BUTTONS_has_been_clicked(K_DOWN)) {
 				if (!morphing_to_letter && !scroll) {
 					morphing_to_letter = MACRO_get(macro_len - 1);
 					if (macro_len > 1 && is_sticky_mod(MACRO_get(macro_len - 2))) {
@@ -266,8 +253,7 @@ int main(void)
 					}
 					transition_start = TIME_get();
 				}
-				break;
-			case K_LEFT:
+			} else if (BUTTONS_has_been_clicked(K_LEFT)) {
 				if (!morphing_to_letter && !scroll && macro_len > 1) {
 					if (macro_len <= 4) {
 						MACRO_set(--macro_len, 0);
@@ -276,8 +262,7 @@ int main(void)
 						transition_start = TIME_get();
 					}
 				}
-				break;
-			case K_RIGHT:
+			} else if (BUTTONS_has_been_clicked(K_RIGHT)) {
 				if (!morphing_to_letter && !scroll && macro_len < MACRO_MAX_LEN) {
 					if (macro_len < 4) {
 						MACRO_set(macro_len, 'a');
@@ -287,14 +272,11 @@ int main(void)
 						transition_start = TIME_get();
 					}
 				}
-				break;
-			default:
-				break;
 			}
 			/* check key holds */
-			if (held == K_PROG) {
+			if (BUTTONS_has_been_held(K_PROG)) {
 				prog_mode = 0;
-			} else if (released == K_PROG) {
+			} else if (once_released && BUTTONS_has_been_released(K_PROG)) {
 				if (islower(MACRO_get(macro_len-1)))
 					morphing_to_letter = 'A';
 				else if (isupper(MACRO_get(macro_len-1)))
@@ -304,30 +286,50 @@ int main(void)
 				else
 					morphing_to_letter = 'a';
 				transition_start = TIME_get();
+			} else if (BUTTONS_has_been_released(K_PROG)) {
+				once_released = true;
 			}
 		} else if (prog_mode_select) {
-			if (0 <= clicked && clicked <= 3) {
-				//UP, DOWN, LEFT, RIGHT ARROW
-				prog_mode = clicked+1;
-				prog_mode_select = false;
-				macro_len = MACRO_init(&ee_strings[clicked][0]);
-			} else if (clicked == K_PROG) {
-				prog_mode = 0;
-				prog_mode_select = false;
+			for (int i = 0; i < 5; ++i) {
+				if (!BUTTONS_has_been_clicked(i))
+					continue;
+				int8_t clicked = i;
+				if (0 <= clicked && clicked <= 3) {
+					//UP, DOWN, LEFT, RIGHT ARROW
+					prog_mode = clicked+1;
+					prog_mode_select = false;
+					macro_len = MACRO_init(&ee_strings[clicked][0]);
+				} else if (clicked == K_PROG) {
+					prog_mode = 0;
+					prog_mode_select = false;
+				}
 			}
 		} else { /* regular mode */
-			if (held == K_PROG) {
+			if (BUTTONS_has_been_held(K_PROG)) {
 				prog_mode_select = true;
-			} else if (clicked == K_PROG) {
-				//TODO
-			} else if (clicked >= 0) {
-				if (MACRO_init(&ee_strings[clicked][0]) == 1) {
-					MACRO_write(true, false);
-				} else {
-					MACRO_write(true, true);
+				once_released = false;
+			} else {
+				for (int i = 0; i < 5; ++i) {
+					if (!BUTTONS_has_been_clicked(i))
+						continue;
+					int8_t clicked = i;
+					if (clicked == K_PROG) {
+						//TODO
+					} else if (clicked >= 0) {
+						if (MACRO_init(&ee_strings[clicked][0]) == 1) {
+							MACRO_write(true, false);
+						} else {
+							MACRO_write(true, true);
+						}
+					}
 				}
-			} else if (released >= 0 && MACRO_init(&ee_strings[released][0]) == 1) {
-				MACRO_write(false, true);
+				for (int i = 0; i < 5; ++i) {
+					if (!BUTTONS_has_been_released(i))
+						continue;
+					int8_t released = i;
+					if (released >= 0 && MACRO_init(&ee_strings[released][0]) == 1)
+						MACRO_write(false, true);
+				}
 			}
 		}
 	}
